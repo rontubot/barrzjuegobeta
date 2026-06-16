@@ -74,26 +74,26 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
 
   // Efecto de la ruleta para elegir quién empieza
   useEffect(() => {
-    let interval: any;
-    if (isSpinning) {
-      let counter = 0;
-      const totalSteps = 15 + Math.floor(Math.random() * 8); // número de cambios
-      
-      interval = setInterval(() => {
-        setSpinIndex((prev) => (prev + 1) % players.length);
-        counter++;
-        
-        if (counter >= totalSteps) {
-          setIsSpinning(false);
-          clearInterval(interval);
-          // Fijar el ganador final
-          const finalIndex = (spinIndex + 1) % players.length;
-          setStartingPlayer(players[finalIndex]);
-        }
-      }, 120);
-    }
+    if (!isSpinning) return;
+
+    let counter = 0;
+    const totalSteps = 15 + Math.floor(Math.random() * 10);
+    let currentIndex = spinIndex;
+
+    const interval = setInterval(() => {
+      currentIndex = (currentIndex + 1) % players.length;
+      setSpinIndex(currentIndex);
+      counter++;
+
+      if (counter >= totalSteps) {
+        clearInterval(interval);
+        setStartingPlayer(players[currentIndex]);
+        setIsSpinning(false);
+      }
+    }, 120);
+
     return () => clearInterval(interval);
-  }, [isSpinning, players, spinIndex]);
+  }, [isSpinning, players]);
 
   const startSpinWheel = () => {
     setStartingPlayer('');
