@@ -242,7 +242,7 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
             <button 
               className="mode-option-card"
               onClick={() => {
-                onNext('gameplay', {
+                onNext('game', {
                   mode: 'solo',
                   players: ['Mi Práctica'],
                   roundsCount: 99,
@@ -260,7 +260,7 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
             <button 
               className="mode-option-card"
               onClick={() => {
-                onNext('gameplay', {
+                onNext('game', {
                   mode: 'multiplayer',
                   players: ['Competidor 1', 'Competidor 2'],
                   roundsCount: 3,
@@ -423,7 +423,7 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
             className="btn-neon-pink w-100 mt-20 pulse-pink-anim"
             onClick={() => {
               const finalStartingPlayer = startingPlayer || players[0];
-              onNext('gameplay', {
+              onNext('game', {
                 mode: 'multiplayer',
                 players,
                 roundsCount,
