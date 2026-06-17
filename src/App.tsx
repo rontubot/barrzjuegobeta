@@ -196,11 +196,24 @@ function App() {
 
   // 4. Zona de Juego Activa (Gameplay & Resultados)
   if (gameState === 'game') {
+    if (!gameSettings) {
+      return (
+        <div className="loader-screen">
+          <div className="grunge-overlay"></div>
+          <div className="loader-content">
+            <div className="loader-bar-container">
+              <div className="loader-bar"></div>
+            </div>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="app-root">
         <Game
+          key={`${gameSettings.players.join(',')}-${gameSettings.mode}-${gameSettings.roundsCount}`}
           onBackToMenu={handleBackToMenu}
-          gameSettings={gameSettings || undefined}
+          gameSettings={gameSettings}
         />
       </div>
     );
