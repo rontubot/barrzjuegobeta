@@ -45,9 +45,13 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
     return initialScores;
   });
 
-  // Estados de sub-pantallas del juego: 'ready' | 'playing' | 'scoring' | 'game_over'
-  const [subState, setSubState] = useState<'ready' | 'playing' | 'scoring' | 'game_over'>('ready');
+  // Estados de sub-pantallas del juego: 'ready' | 'playing' | 'scoring' | 'replica_announcement' | 'game_over'
+  const [subState, setSubState] = useState<'ready' | 'playing' | 'scoring' | 'replica_announcement' | 'game_over'>('ready');
   const [selectedRating, setSelectedRating] = useState<number>(3); // Estrellas por defecto: 3
+
+  // Estados para Réplicas (Desempate)
+  const [isReplicaActive, setIsReplicaActive] = useState(false);
+  const [replicaPlayers, setReplicaPlayers] = useState<string[]>([]);
 
   // Cartas activas
   const [activeBeat, setActiveBeat] = useState<BeatCard | null>(null);
@@ -77,13 +81,19 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
   const filteredChallenges = CHALLENGES_DECK.filter(card => categories.includes(card.category));
   const availableChallenges = filteredChallenges.length > 0 ? filteredChallenges : CHALLENGES_DECK;
 
-  // Establecer el índice del jugador inicial al comenzar
+  // Lista de competidores activos en la ronda actual (en réplica solo participan los empatados)
+  const activeRoundPlayers = isReplicaActive ? replicaPlayers : playerNames;
+  const activePlayer = activeRoundPlayers[currentPlayerIndex] || activeRoundPlayers[0];
+
+  // Establecer el índice del jugador inicial al comenzar (solo en ronda 1 normal)
   useEffect(() => {
-    const startIndex = playerNames.indexOf(startingPlayer);
-    if (startIndex !== -1) {
-      setCurrentPlayerIndex(startIndex);
+    if (!isReplicaActive) {
+      const startIndex = playerNames.indexOf(startingPlayer);
+      if (startIndex !== -1) {
+        setCurrentPlayerIndex(startIndex);
+      }
     }
-  }, [startingPlayer, playerNames]);
+  }, [startingPlayer, playerNames, isReplicaActive]);
 
   // Manejo del temporizador
   useEffect(() => {
@@ -148,7 +158,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
     setTimerRunning(false);
     if (mode === 'solo') {
       // En modo Solo, no hay puntuación. Pasamos de turno directamente
-      advanceTurn();
+      advanceTurn(scores);
     } else {
       setSelectedRating(3); // Restablecer estrellas a 3
       setSubState('scoring');
@@ -157,34 +167,62 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
 
   // Registrar estrellas y avanzar turno
   const handleSaveScore = () => {
-    const activePlayer = playerNames[currentPlayerIndex];
-    setScores(prev => ({
-      ...prev,
-      [activePlayer]: prev[activePlayer] + selectedRating
-    }));
-    advanceTurn();
+    const newScores = {
+      ...scores,
+      [activePlayer]: scores[activePlayer] + selectedRating
+    };
+    setScores(newScores);
+    advanceTurn(newScores);
   };
 
-  // Avanzar turno o finalizar partida
-  const advanceTurn = () => {
+  // Avanzar turno, evaluar empates / réplicas o finalizar
+  const advanceTurn = (currentScores: Record<string, number>) => {
     setBeatFlipped(false);
     setChallengeFlipped(false);
     setActiveBeat(null);
     setActiveChallenge(null);
 
-    // Comprobar si era el último jugador de la ronda
-    if (currentPlayerIndex === playerNames.length - 1) {
-      if (currentRound >= totalRounds) {
-        // Fin de la partida, ir al podio
-        setSubState('game_over');
+    // Comprobar si era el último jugador de la lista activa en esta ronda
+    if (currentPlayerIndex === activeRoundPlayers.length - 1) {
+      if (isReplicaActive) {
+        // --- PROCESO EN MODO RÉPLICA ---
+        const maxScore = Math.max(...Object.values(currentScores));
+        const leaders = Object.keys(currentScores).filter(name => currentScores[name] === maxScore);
+
+        if (leaders.length > 1) {
+          // Continúa el empate por el primer lugar, otra ronda de réplica
+          setReplicaPlayers(leaders);
+          setSubState('replica_announcement');
+        } else {
+          // Ya hay un ganador indiscutido
+          setIsReplicaActive(false);
+          setSubState('game_over');
+        }
       } else {
-        // Avanzar de ronda y volver al primer jugador
-        setCurrentRound(prev => prev + 1);
-        setCurrentPlayerIndex(0);
-        setSubState('ready');
+        // --- PROCESO EN MODO NORMAL ---
+        if (currentRound >= totalRounds) {
+          // Fin del total de rondas normales: Evaluar si hay empate por el 1er puesto
+          const maxScore = Math.max(...Object.values(currentScores));
+          const leaders = Object.keys(currentScores).filter(name => currentScores[name] === maxScore);
+
+          if (leaders.length > 1) {
+            // ¡HAY RÉPLICA!
+            setIsReplicaActive(true);
+            setReplicaPlayers(leaders);
+            setSubState('replica_announcement');
+          } else {
+            // Ganador único de inmediato
+            setSubState('game_over');
+          }
+        } else {
+          // Avanzar de ronda y volver al primer jugador
+          setCurrentRound(prev => prev + 1);
+          setCurrentPlayerIndex(0);
+          setSubState('ready');
+        }
       }
     } else {
-      // Siguiente jugador de la misma ronda
+      // Siguiente jugador en la misma ronda
       setCurrentPlayerIndex(prev => prev + 1);
       setSubState('ready');
     }
@@ -193,7 +231,6 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
   // Comenzar el turno (ocultar ready screen y cargar cartas)
   const handleStartTurn = () => {
     setSubState('playing');
-    // Forzar sacar cartas de inmediato para agilizar la jugabilidad
     drawBeat();
     drawChallenge();
   };
@@ -202,6 +239,8 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
   const handleResetConfirmed = () => {
     setShowResetConfirm(false);
     setCurrentRound(1);
+    setIsReplicaActive(false);
+    setReplicaPlayers([]);
     
     // Poner puntuaciones en 0
     const resetScores: Record<string, number> = {};
@@ -223,7 +262,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
     setSubState('ready');
   };
 
-  // Spotify
+  // Spotify Link Launcher
   const openSpotify = (beat: BeatCard) => {
     window.location.href = beat.spotifyUri;
     setTimeout(() => {
@@ -239,11 +278,19 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
   };
 
   const bpmPulseDuration = activeBeat ? 60 / activeBeat.bpm : 0.67;
-  const activePlayer = playerNames[currentPlayerIndex];
 
-  // Ordenar leaderboard para el podio
+  // Ordenar puntuaciones para la tabla y el podio
   const sortedLeaderboard = Object.entries(scores)
     .sort((a, b) => b[1] - a[1]);
+
+  // Calcular puestos (rangos) teniendo en cuenta empates matemáticos
+  let currentRank = 1;
+  const ranksList = sortedLeaderboard.map(([name, points], index) => {
+    if (index > 0 && points < sortedLeaderboard[index - 1][1]) {
+      currentRank = index + 1;
+    }
+    return { name, points, rank: currentRank };
+  });
 
   return (
     <>
@@ -264,7 +311,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
       <ConfirmDialog
         isOpen={showResetConfirm}
         title="¿Reiniciar partida?"
-        message="Se borrará el puntaje de todos los jugadores y volverán al principio del primer turno."
+        message="Se borrará el puntaje de todos los competidores y volverán al principio del primer turno."
         confirmLabel="Reiniciar"
         cancelLabel="Cancelar"
         variant="warning"
@@ -275,8 +322,8 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
       <div className={`game-container ${isExiting ? 'exiting' : ''}`}>
         <div className="grunge-overlay"></div>
 
-        {/* HUD DE CABECERA (Visible excepto en pantalla de carga/gameover) */}
-        {subState !== 'game_over' && (
+        {/* HUD DE CABECERA (Visible excepto en pantalla de carga, réplica o gameover) */}
+        {subState !== 'game_over' && subState !== 'replica_announcement' && (
           <div className="game-header">
             <button className="btn-back" onClick={() => setShowBackConfirm(true)}>
               <ArrowLeft size={18} />
@@ -284,7 +331,9 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
             </button>
 
             <div className="turn-indicator glass-panel">
-              <div className="turn-label">RONDA {currentRound} / {mode === 'solo' ? '∞' : totalRounds}</div>
+              <div className="turn-label">
+                {isReplicaActive ? `RÉPLICA (RONDA ${currentRound})` : `RONDA ${currentRound} / ${mode === 'solo' ? '∞' : totalRounds}`}
+              </div>
               <div className="player-name">
                 <User size={14} className="teal-text" />
                 <span>{activePlayer}</span>
@@ -304,17 +353,22 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
               <div className="avatar-circle">🎙</div>
             </div>
             
-            <span className="ready-round-tag">PREPÁRATE - RONDA {currentRound}</span>
+            <span className="ready-round-tag">
+              {isReplicaActive ? 'RÉPLICA DE COMBATE' : `PREPÁRATE - RONDA ${currentRound}`}
+            </span>
             <h2 className="ready-player-title font-graffiti text-glow-teal">{activePlayer}</h2>
             
             {mode !== 'solo' && (
               <p className="ready-score-hint">
-                Puntaje actual: <strong className="pink-text">{scores[activePlayer]} pts</strong>
+                Puntaje acumulado: <strong className="pink-text">{scores[activePlayer]} pts</strong>
               </p>
             )}
 
             <p className="ready-description">
-              Es tu turno de rimar. Se te asignará un beat aleatorio y una carta de desafío. ¿Estás listo para el mic?
+              {isReplicaActive 
+                ? '¡Esta es la ronda de desempate! Mostrá de qué estás hecho para tomar el primer puesto.'
+                : 'Es tu turno de rimar. Se te asignará un beat aleatorio y una carta de desafío. ¿Listo?'
+              }
             </p>
 
             <button className="btn-comenzar-turno pulse-teal-anim" onClick={handleStartTurn}>
@@ -578,42 +632,84 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
           </div>
         )}
 
-        {/* ── 4. GAME OVER (PODIO Y RESULTADOS) ───────────────────────────── */}
+        {/* ── 4. RÉPLICA ANNOUNCEMENT (¡HAY RÉPLICA!) ────────────────────────── */}
+        {subState === 'replica_announcement' && (
+          <div className="ready-screen-content glass-panel glow-pink text-center fade-in">
+            <div className="ready-avatar-wrapper">
+              <div className="avatar-circle" style={{ borderColor: 'var(--neon-pink)', boxShadow: 'var(--shadow-neon-pink)' }}>🔥</div>
+            </div>
+
+            <span className="ready-round-tag" style={{ color: 'var(--neon-pink)' }}>¡EMPATE DE TITANES!</span>
+            <h2 className="ready-player-title font-graffiti text-glow-pink">¡HAY RÉPLICA!</h2>
+            
+            <div className="replica-versus-box glass-panel" style={{ padding: '15px', margin: '20px 0', border: '1px dashed var(--neon-pink)' }}>
+              <div className="replica-versus-names" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px', fontWeight: 900, fontSize: '1.2rem' }}>
+                {replicaPlayers.map((name, idx) => (
+                  <React.Fragment key={name}>
+                    {idx > 0 && <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>VS</span>}
+                    <span className="pink-text">{name}</span>
+                  </React.Fragment>
+                ))}
+              </div>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '8px', lineHeight: 1.4 }}>
+                Se jugará una ronda extra entre los empatados en primer puesto. El competidor con mayor puntaje al terminar se llevará la victoria.
+              </p>
+            </div>
+
+            <button className="btn-neon-pink w-100 pulse-pink-anim" onClick={() => {
+              setCurrentRound(prev => prev + 1);
+              setCurrentPlayerIndex(0);
+              setSubState('ready');
+            }}>
+              <span>INICIAR DESEMPATE</span>
+            </button>
+          </div>
+        )}
+
+        {/* ── 5. GAME OVER (PODIO Y RESULTADOS) ───────────────────────────── */}
         {subState === 'game_over' && (
           <div className="gameover-screen-content glass-panel glow-pink text-center fade-in">
             <h1 className="gameover-main-title font-accent text-glow-pink">FIN DE LA BATALLA</h1>
             <p className="gameover-subtitle">Tabla final de puntuaciones y campeones.</p>
 
-            {/* PODIO VISUAL */}
+            {/* PODIO VISUAL DINÁMICO CON EMPATES */}
             <div className="podium-container">
-              {/* 2do Puesto */}
-              {sortedLeaderboard[1] && (
+              {/* 2do Puesto / Slot Izquierdo */}
+              {ranksList[1] && (
                 <div className="podium-step step-second fade-in">
-                  <span className="podium-rank">2</span>
-                  <span className="podium-name">{sortedLeaderboard[1][0]}</span>
-                  <span className="podium-score">{sortedLeaderboard[1][1]} pts</span>
-                  <div className="podium-pillar pillar-second"></div>
+                  {ranksList[1].rank === 1 && <span className="winner-trophy">👑</span>}
+                  <span className="podium-rank">{ranksList[1].rank}</span>
+                  <span className={`podium-name ${ranksList[1].rank === 1 ? 'pink-text' : ''}`}>{ranksList[1].name}</span>
+                  <span className="podium-score">{ranksList[1].points} pts</span>
+                  <div className={`podium-pillar ${ranksList[1].rank === 1 ? 'pillar-first glow-pink' : 'pillar-second'}`}></div>
                 </div>
               )}
 
-              {/* 1er Puesto (Ganador) */}
-              {sortedLeaderboard[0] && (
+              {/* 1er Puesto / Slot Central */}
+              {ranksList[0] && (
                 <div className="podium-step step-first fade-in">
                   <span className="winner-trophy">👑</span>
-                  <span className="podium-rank">1</span>
-                  <span className="podium-name pink-text">{sortedLeaderboard[0][0]}</span>
-                  <span className="podium-score">{sortedLeaderboard[0][1]} pts</span>
+                  <span className="podium-rank">{ranksList[0].rank}</span>
+                  <span className="podium-name pink-text">{ranksList[0].name}</span>
+                  <span className="podium-score">{ranksList[0].points} pts</span>
                   <div className="podium-pillar pillar-first glow-pink"></div>
                 </div>
               )}
 
-              {/* 3er Puesto */}
-              {sortedLeaderboard[2] && (
+              {/* 3er Puesto / Slot Derecho */}
+              {ranksList[2] && (
                 <div className="podium-step step-third fade-in">
-                  <span className="podium-rank">3</span>
-                  <span className="podium-name">{sortedLeaderboard[2][0]}</span>
-                  <span className="podium-score">{sortedLeaderboard[2][1]} pts</span>
-                  <div className="podium-pillar pillar-third"></div>
+                  {ranksList[2].rank === 1 && <span className="winner-trophy">👑</span>}
+                  <span className="podium-rank">{ranksList[2].rank}</span>
+                  <span className={`podium-name ${ranksList[2].rank === 1 ? 'pink-text' : ranksList[2].rank === 2 ? 'teal-text' : ''}`}>{ranksList[2].name}</span>
+                  <span className="podium-score">{ranksList[2].points} pts</span>
+                  <div className={`podium-pillar ${
+                    ranksList[2].rank === 1 
+                      ? 'pillar-first glow-pink' 
+                      : ranksList[2].rank === 2 
+                        ? 'pillar-second' 
+                        : 'pillar-third'
+                  }`}></div>
                 </div>
               )}
             </div>
@@ -629,9 +725,9 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedLeaderboard.map(([name, points], index) => (
-                    <tr key={name} className={index === 0 ? 'winner-row' : ''}>
-                      <td>#{index + 1}</td>
+                  {ranksList.map(({ name, points, rank }) => (
+                    <tr key={name} className={rank === 1 ? 'winner-row' : ''}>
+                      <td>#{rank}</td>
                       <td>{name}</td>
                       <td><strong>{points}</strong> pts</td>
                     </tr>
@@ -652,6 +748,8 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                   });
                   setScores(resetScores);
                   setCurrentRound(1);
+                  setIsReplicaActive(false);
+                  setReplicaPlayers([]);
                   const startIndex = playerNames.indexOf(startingPlayer);
                   setCurrentPlayerIndex(startIndex !== -1 ? startIndex : 0);
                   setActiveBeat(null);
