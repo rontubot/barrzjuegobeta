@@ -103,6 +103,18 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 1.5s ease-out, transform 1.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Efecto de desvanecimiento suave al iniciar partida */
+.music-controls-wrapper.game-faded,
+.song-banner-overlay.game-faded {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(20px) !important;
+  transition: opacity 1.5s ease-out, transform 1.5s ease-out !important;
 }
 
 /* Botón flotante redondo principal */

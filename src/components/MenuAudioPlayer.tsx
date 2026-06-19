@@ -280,99 +280,107 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
     };
   }, [isPanelOpen]);
 
+  const isGame = gameState === 'game';
+
   return (
     <div className="menu-audio-container">
       {/* 1. NOTIFICACIÓN DE CANCIÓN - ESTILO FIFA (Abajo Izquierda) */}
-      {gameState !== 'game' && (
-        <div className={`song-banner-overlay ${showBanner ? 'visible' : ''}`}>
-          <div className="song-banner-icon">
-            <Music size={20} />
-          </div>
-          <div className="song-banner-info">
-            <span className="song-banner-tag">Soundtrack</span>
-            <span className="song-banner-title">{currentTrack.name}</span>
-          </div>
+      <div className={`song-banner-overlay ${showBanner && !isGame ? 'visible' : ''} ${isGame ? 'game-faded' : ''}`}>
+        <div className="song-banner-icon">
+          <Music size={20} />
         </div>
-      )}
+        <div className="song-banner-info">
+          <span className="song-banner-tag">Soundtrack</span>
+          <span className="song-banner-title">{currentTrack.name}</span>
+        </div>
+      </div>
 
       {/* 2. REPRODUCTOR / CONTROLES DE AUDIO (Abajo Derecha) */}
-      {gameState !== 'game' && (
-        <div className="music-controls-wrapper" ref={containerRef}>
-          {/* Panel Flotante Suplementario (Abierto al hacer click / touch) */}
-          <div className={`music-controls-panel ${isPanelOpen ? 'open' : ''}`}>
-            <div className="music-panel-track-title">{currentTrack.name}</div>
-            
-            <div className="music-panel-actions">
-              {/* Botón Atrás */}
-              <button 
-                type="button" 
-                className="music-ctrl-btn" 
-                onClick={playPrevRandom}
-                title="Pista anterior"
-              >
-                <SkipBack size={18} fill="currentColor" />
-              </button>
+      <div className={`music-controls-wrapper ${isGame ? 'game-faded' : ''}`} ref={containerRef}>
+        {/* Panel Flotante Suplementario (Abierto al hacer click / touch) */}
+        <div className={`music-controls-panel ${isPanelOpen && !isGame ? 'open' : ''}`}>
+          <div className="music-panel-track-title">{currentTrack.name}</div>
+          
+          <div className="music-panel-actions">
+            {/* Botón Atrás */}
+            <button 
+              type="button" 
+              className="music-ctrl-btn" 
+              onClick={playPrevRandom}
+              title="Pista anterior"
+              disabled={isGame}
+            >
+              <SkipBack size={18} fill="currentColor" />
+            </button>
 
-              {/* Botón Play / Pausa */}
-              <button 
-                type="button" 
-                className="music-ctrl-btn play-pause" 
-                onClick={togglePlayPause}
-                title={isPlaying ? 'Pausar' : 'Reproducir'}
-              >
-                {isPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" />}
-              </button>
+            {/* Botón Play / Pausa */}
+            <button 
+              type="button" 
+              className="music-ctrl-btn play-pause" 
+              onClick={togglePlayPause}
+              title={isPlaying ? 'Pausar' : 'Reproducir'}
+              disabled={isGame}
+            >
+              {isPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" />}
+            </button>
 
-              {/* Botón Siguiente */}
-              <button 
-                type="button" 
-                className="music-ctrl-btn" 
-                onClick={playNextRandom}
-                title="Siguiente pista"
-              >
-                <SkipForward size={18} fill="currentColor" />
-              </button>
-            </div>
-
-            {/* Control Deslizante de Volumen */}
-            <div className="volume-control-section">
-              <button 
-                type="button" 
-                className="btn-mute-toggle" 
-                onClick={toggleMute}
-                title={isMuted ? 'Desmutear' : 'Mutear'}
-              >
-                {isMuted || volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
-              </button>
-              
-              <input
-                type="range"
-                className="volume-slider"
-                min="0"
-                max="1"
-                step="0.05"
-                value={isMuted ? 0 : volume}
-                onChange={handleVolumeChange}
-                title="Ajustar volumen"
-              />
-            </div>
+            {/* Botón Siguiente */}
+            <button 
+              type="button" 
+              className="music-ctrl-btn" 
+              onClick={playNextRandom}
+              title="Siguiente pista"
+              disabled={isGame}
+            >
+              <SkipForward size={18} fill="currentColor" />
+            </button>
           </div>
 
-          {/* Botón Circular Principal */}
-          <button 
-            type="button" 
-            className={`btn-music-trigger ${isMuted || volume === 0 ? 'muted' : ''} ${isPanelOpen ? 'active' : ''}`}
-            onClick={() => setIsPanelOpen(!isPanelOpen)}
-            title="Configuración de Música"
-          >
-            {isPlaying && gameState !== 'game' && !isMuted && volume > 0 ? (
-              <Music size={20} className="pulse-music" />
-            ) : (
-              <VolumeX size={20} />
-            )}
-          </button>
+          {/* Control Deslizante de Volumen */}
+          <div className="volume-control-section">
+            <button 
+              type="button" 
+              className="btn-mute-toggle" 
+              onClick={toggleMute}
+              title={isMuted ? 'Desmutear' : 'Mutear'}
+              disabled={isGame}
+            >
+              {isMuted || volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
+            </button>
+            
+            <input
+              type="range"
+              className="volume-slider"
+              min="0"
+              max="1"
+              step="0.05"
+              value={isMuted ? 0 : volume}
+              onChange={handleVolumeChange}
+              title="Ajustar volumen"
+              disabled={isGame}
+            />
+          </div>
         </div>
-      )}
+
+        {/* Botón Circular Principal */}
+        <button 
+          type="button" 
+          className={`btn-music-trigger ${isMuted || volume === 0 ? 'muted' : ''} ${isPanelOpen && !isGame ? 'active' : ''}`}
+          onClick={() => {
+            if (!isGame) {
+              setIsPanelOpen(!isPanelOpen);
+            }
+          }}
+          title="Configuración de Música"
+          disabled={isGame}
+        >
+          {isPlaying && !isGame && !isMuted && volume > 0 ? (
+            <Music size={20} className="pulse-music" />
+          ) : (
+            <VolumeX size={20} />
+          )}
+        </button>
+      </div>
     </div>
   );
 };
