@@ -27,10 +27,12 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
   const [volume, setVolume] = useState<number>(0.5); // Volumen por defecto: 50%
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [showBanner, setShowBanner] = useState<boolean>(false);
+  const [isPanelOpen, setIsPanelOpen] = useState<boolean>(false);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fadeIntervalRef = useRef<any>(null);
   const bannerTimeoutRef = useRef<any>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   
   const currentTrack = SOUNDTRACKS[currentTrackIndex];
 
@@ -260,6 +262,24 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
     }
   };
 
+  // Cerrar el panel al hacer clic fuera del contenedor (para touch / mouse click)
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsPanelOpen(false);
+      }
+    };
+
+    if (isPanelOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isPanelOpen]);
+
   return (
     <div className="menu-audio-container">
       {/* 1. NOTIFICACIÓN DE CANCIÓN - ESTILO FIFA (Abajo Izquierda) */}
@@ -277,9 +297,9 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
 
       {/* 2. REPRODUCTOR / CONTROLES DE AUDIO (Abajo Derecha) */}
       {gameState !== 'game' && (
-        <div className="music-controls-wrapper">
-          {/* Panel Flotante Suplementario (Visible en Hover) */}
-          <div className="music-controls-panel">
+        <div className="music-controls-wrapper" ref={containerRef}>
+          {/* Panel Flotante Suplementario (Abierto al hacer click / touch) */}
+          <div className={`music-controls-panel ${isPanelOpen ? 'open' : ''}`}>
             <div className="music-panel-track-title">{currentTrack.name}</div>
             
             <div className="music-panel-actions">
@@ -341,8 +361,8 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
           {/* Botón Circular Principal */}
           <button 
             type="button" 
-            className={`btn-music-trigger ${isMuted || volume === 0 ? 'muted' : ''}`}
-            onClick={togglePlayPause}
+            className={`btn-music-trigger ${isMuted || volume === 0 ? 'muted' : ''} ${isPanelOpen ? 'active' : ''}`}
+            onClick={() => setIsPanelOpen(!isPanelOpen)}
             title="Configuración de Música"
           >
             {isPlaying && gameState !== 'game' && !isMuted && volume > 0 ? (

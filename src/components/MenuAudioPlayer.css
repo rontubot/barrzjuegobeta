@@ -125,7 +125,7 @@
 }
 
 .btn-music-trigger:hover,
-.music-controls-wrapper:hover .btn-music-trigger {
+.btn-music-trigger.active {
   color: #fff;
   background: linear-gradient(135deg, var(--neon-teal), rgba(0, 242, 254, 0.4));
   border-color: #fff;
@@ -162,8 +162,8 @@
   z-index: 1;
 }
 
-/* El panel se muestra al pasar el mouse por encima del contenedor */
-.music-controls-wrapper:hover .music-controls-panel {
+/* El panel se muestra cuando tiene la clase open (al dar click / touch) */
+.music-controls-panel.open {
   transform: translateY(0) scale(1);
   opacity: 1;
   pointer-events: auto;
