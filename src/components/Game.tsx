@@ -264,10 +264,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
 
   // Spotify Link Launcher
   const openSpotify = (beat: BeatCard) => {
-    window.location.href = beat.spotifyUri;
-    setTimeout(() => {
-      window.open(beat.spotifyUrl, '_blank');
-    }, 500);
+    window.open(beat.spotifyUrl, '_blank');
   };
 
   const startTimer = () => setTimerRunning(true);

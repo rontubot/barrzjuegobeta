@@ -45,9 +45,15 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
 
   // Manejo de nombres de jugadores
   const handlePlayerNameChange = (index: number, name: string) => {
+    const oldName = players[index];
     const newPlayers = [...players];
     newPlayers[index] = name;
     setPlayers(newPlayers);
+
+    // Si el jugador cuyo nombre cambió era el startingPlayer, actualizar el nombre
+    if (startingPlayer === oldName) {
+      setStartingPlayer(name);
+    }
   };
 
   const addPlayerField = () => {
@@ -57,8 +63,19 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
 
   const removePlayerField = (index: number) => {
     if (players.length <= 2) return;
+    const oldName = players[index];
     const newPlayers = players.filter((_, i) => i !== index);
     setPlayers(newPlayers);
+
+    // Si eliminamos al jugador que empezaba, resetear el empezador
+    if (startingPlayer === oldName) {
+      setStartingPlayer('');
+    }
+
+    // Asegurar que spinIndex no quede fuera de rango
+    if (spinIndex >= newPlayers.length) {
+      setSpinIndex(newPlayers.length - 1);
+    }
   };
 
   // Toggle de categorías de juego
@@ -422,7 +439,7 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
           <button 
             className="btn-neon-pink w-100 mt-20 pulse-pink-anim"
             onClick={() => {
-              const finalStartingPlayer = startingPlayer || players[0];
+              const finalStartingPlayer = players.includes(startingPlayer) ? startingPlayer : players[0];
               onNext('game', {
                 mode: 'multiplayer',
                 players,

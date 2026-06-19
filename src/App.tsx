@@ -3,6 +3,7 @@ import { Splash } from './components/Splash';
 import { OnboardingAuth } from './components/OnboardingAuth';
 import { GameSetup } from './components/GameSetup';
 import { Game } from './components/Game';
+import { MenuAudioPlayer } from './components/MenuAudioPlayer';
 import './App.css';
 
 type GameState =
@@ -145,36 +146,32 @@ function App() {
     );
   }
 
+  let mainContent = null;
+
   // 1. Pantalla Inicial (Splash)
   if (gameState === 'splash') {
-    return (
-      <div className="app-root">
-        <Splash onStartGame={handleStartGame} fromGame={cameFromGame} />
-      </div>
-    );
+    mainContent = <Splash onStartGame={handleStartGame} fromGame={cameFromGame} />;
   }
 
   // 2. Pantallas de Onboarding y Autenticación
-  if (
+  else if (
     gameState === 'onboarding_1' ||
     gameState === 'onboarding_2' ||
     gameState === 'auth_choice' ||
     gameState === 'auth_password' ||
     gameState === 'auth_verify'
   ) {
-    return (
-      <div className="app-root">
-        <OnboardingAuth
-          step={gameState}
-          onNext={handleNextStep}
-          onBack={handleBackStep}
-        />
-      </div>
+    mainContent = (
+      <OnboardingAuth
+        step={gameState}
+        onNext={handleNextStep}
+        onBack={handleBackStep}
+      />
     );
   }
 
   // 3. Pantallas de Lobbies y Configuraciones de Juego
-  if (
+  else if (
     gameState === 'lobby_start' ||
     gameState === 'tutorial_ask' ||
     gameState === 'mode_selection' ||
@@ -182,20 +179,18 @@ function App() {
     gameState === 'setup_rounds' ||
     gameState === 'setup_deck'
   ) {
-    return (
-      <div className="app-root">
-        <GameSetup
-          step={gameState}
-          userSession={userSession}
-          onNext={handleNextStep}
-          onBack={handleBackStep}
-        />
-      </div>
+    mainContent = (
+      <GameSetup
+        step={gameState}
+        userSession={userSession}
+        onNext={handleNextStep}
+        onBack={handleBackStep}
+      />
     );
   }
 
   // 4. Zona de Juego Activa (Gameplay & Resultados)
-  if (gameState === 'game') {
+  else if (gameState === 'game') {
     if (!gameSettings) {
       return (
         <div className="loader-screen">
@@ -208,18 +203,21 @@ function App() {
         </div>
       );
     }
-    return (
-      <div className="app-root">
-        <Game
-          key={`${gameSettings.players.join(',')}-${gameSettings.mode}-${gameSettings.roundsCount}`}
-          onBackToMenu={handleBackToMenu}
-          gameSettings={gameSettings}
-        />
-      </div>
+    mainContent = (
+      <Game
+        key={`${gameSettings.players.join(',')}-${gameSettings.mode}-${gameSettings.roundsCount}`}
+        onBackToMenu={handleBackToMenu}
+        gameSettings={gameSettings}
+      />
     );
   }
 
-  return null;
+  return (
+    <div className="app-root">
+      {mainContent}
+      <MenuAudioPlayer gameState={gameState} />
+    </div>
+  );
 }
 
 export default App;
