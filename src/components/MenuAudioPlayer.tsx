@@ -33,6 +33,7 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
   const fadeIntervalRef = useRef<any>(null);
   const bannerTimeoutRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const prevGameStateRef = useRef<string>(gameState);
   
   const currentTrack = SOUNDTRACKS[currentTrackIndex];
 
@@ -113,14 +114,18 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
 
   // 3. Manejar transiciones de estados (Menú vs Gameplay)
   useEffect(() => {
-    if (fadeIntervalRef.current) {
-      clearInterval(fadeIntervalRef.current);
-      fadeIntervalRef.current = null;
-    }
+    const prevGameState = prevGameStateRef.current;
+    prevGameStateRef.current = gameState;
 
+    if (prevGameState === gameState) return;
     if (!audioRef.current) return;
 
-    if (gameState === 'game') {
+    // Solo hacemos fade out si pasamos de cualquier menú al combate ('game')
+    if (gameState === 'game' && prevGameState !== 'game') {
+      if (fadeIntervalRef.current) {
+        clearInterval(fadeIntervalRef.current);
+      }
+
       // --- FADE OUT (Transición hacia la partida) ---
       const startVol = audioRef.current.volume;
       let curVol = startVol;
@@ -142,8 +147,13 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
           }
         }
       }, stepTime);
+    }
+    // Solo hacemos fade in si pasamos del combate ('game') a cualquier menú
+    else if (gameState !== 'game' && prevGameState === 'game') {
+      if (fadeIntervalRef.current) {
+        clearInterval(fadeIntervalRef.current);
+      }
 
-    } else {
       // --- FADE IN (Regreso al Menú) ---
       if (isPlaying) {
         audioRef.current.volume = 0;
@@ -179,7 +189,7 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
         clearInterval(fadeIntervalRef.current);
       }
     };
-  }, [gameState]);
+  }, [gameState, isPlaying, volume, isMuted]);
 
   // Selección de siguiente pista (aleatoria sin repetir la actual inmediatamente)
   const playNextRandom = () => {
