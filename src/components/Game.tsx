@@ -5,6 +5,17 @@ import type { BeatCard, ChallengeCard } from '../data/cards';
 import { ConfirmDialog } from './ConfirmDialog';
 import './Game.css';
 
+const DEATHMATCH_THEMES = [
+  { title: 'EL TODO O NADA', desc: 'Improvisen sobre arriesgarlo todo en el último segundo.', highlight: 'ÚLTIMO CARTUCHO' },
+  { title: 'LA CAÍDA DEL IMPERIO', desc: 'Rimen sobre el poder, la ambición y la caída inevitable de los grandes.', highlight: 'AMBICIÓN' },
+  { title: 'INFRAMUNDO URBANO', desc: 'Describan las calles oscuras, los códigos del rap y la supervivencia.', highlight: 'CÓDIGO CALLEJERO' },
+  { title: 'VIAJEROS DEL TIEMPO', desc: 'Hablen sobre cambiar el pasado o las consecuencias del futuro.', highlight: 'EFECTO MARIPOSA' },
+  { title: 'JUICIO FINAL', desc: 'Quién merece la corona y quién será condenado al olvido.', highlight: 'SENTENCIA' },
+  { title: 'FÉNIX NEGRO', desc: 'Rimen sobre resurgir de las cenizas de una derrota total.', highlight: 'RESURRECCIÓN' },
+  { title: 'TIEMPO LÍMITE', desc: 'El reloj corre y no hay segundas oportunidades.', highlight: 'RELOJ DE ARENA' },
+  { title: 'BATALLA ESPACIAL', desc: 'El cypher viaja a la órbita terrestre, rimas interestelares.', highlight: 'GRAVEDAD CERO' },
+];
+
 interface GameProps {
   onBackToMenu: () => void;
   gameSettings?: {
@@ -57,6 +68,9 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
   const [activeBeat, setActiveBeat] = useState<BeatCard | null>(null);
   const [activeChallenge, setActiveChallenge] = useState<ChallengeCard | null>(null);
   const [activeCardType, setActiveCardType] = useState<'challenge' | 'beat'>('challenge');
+  const [hasViewedChallenge, setHasViewedChallenge] = useState(false);
+  const [hasViewedBeat, setHasViewedBeat] = useState(false);
+  const [replicaTheme, setReplicaTheme] = useState<{ title: string; desc: string; highlight: string } | null>(null);
 
   // Estados de animación de cartas
   const [beatFlipped, setBeatFlipped] = useState(false);
@@ -129,6 +143,17 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
     setWordsRotated(false);
   }, [activeChallenge]);
 
+  // Registrar las cartas vistas en el turno actual
+  useEffect(() => {
+    if (subState === 'playing') {
+      if (activeCardType === 'challenge') {
+        setHasViewedChallenge(true);
+      } else if (activeCardType === 'beat') {
+        setHasViewedBeat(true);
+      }
+    }
+  }, [activeCardType, subState]);
+
   // Volver al menú
   const triggerExitToMenu = () => {
     setIsExiting(true);
@@ -182,6 +207,8 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
     setChallengeFlipped(false);
     setActiveBeat(null);
     setActiveChallenge(null);
+    setHasViewedChallenge(false);
+    setHasViewedBeat(false);
 
     // Comprobar si era el último jugador de la lista activa en esta ronda
     if (currentPlayerIndex === activeRoundPlayers.length - 1) {
@@ -193,6 +220,8 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
         if (leaders.length > 1) {
           // Continúa el empate por el primer lugar, otra ronda de réplica
           setReplicaPlayers(leaders);
+          const randomIndex = Math.floor(Math.random() * DEATHMATCH_THEMES.length);
+          setReplicaTheme(DEATHMATCH_THEMES[randomIndex]);
           setSubState('replica_announcement');
         } else {
           // Ya hay un ganador indiscutido
@@ -210,6 +239,8 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
             // ¡HAY RÉPLICA!
             setIsReplicaActive(true);
             setReplicaPlayers(leaders);
+            const randomIndex = Math.floor(Math.random() * DEATHMATCH_THEMES.length);
+            setReplicaTheme(DEATHMATCH_THEMES[randomIndex]);
             setSubState('replica_announcement');
           } else {
             // Ganador único de inmediato
@@ -233,6 +264,8 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
   const handleStartTurn = () => {
     setSubState('playing');
     setActiveCardType('challenge'); // Desafío al frente por defecto
+    setHasViewedChallenge(true); // Se inicia viendo el desafío
+    setHasViewedBeat(false); // Aún no vio el beat
     drawBeat(1000); // 1.0s delay for turn intro flip
     drawChallenge(1000); // 1.0s delay for turn intro flip
   };
@@ -243,6 +276,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
     setCurrentRound(1);
     setIsReplicaActive(false);
     setReplicaPlayers([]);
+    setReplicaTheme(null);
     
     // Poner puntuaciones en 0
     const resetScores: Record<string, number> = {};
@@ -261,6 +295,8 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
     setTimerSeconds(90);
     setBeatFlipped(false);
     setChallengeFlipped(false);
+    setHasViewedChallenge(false);
+    setHasViewedBeat(false);
     setSubState('ready');
   };
 
@@ -613,11 +649,16 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
             {/* Acciones de Footer */}
             <div className="game-footer-actions">
               <button
-                className={`btn-next-turn ${activeCardType === 'beat' ? 'pulse-pink-anim' : ''}`}
+                className={`btn-next-turn ${(hasViewedChallenge && hasViewedBeat) ? 'pulse-pink-anim' : ''}`}
                 onClick={handleFinishImprovisation}
-                disabled={activeCardType !== 'beat'}
+                disabled={!hasViewedChallenge || !hasViewedBeat}
               >
-                <span>{mode === 'solo' ? 'Siguiente Turno' : 'Terminar Turno'}</span>
+                <span>
+                  {(!hasViewedChallenge || !hasViewedBeat) 
+                    ? 'Revisá ambas cartas' 
+                    : (mode === 'solo' ? 'Siguiente Turno' : 'Terminar Turno')
+                  }
+                </span>
                 <SkipForward size={18} fill="currentColor" />
               </button>
             </div>
@@ -668,34 +709,45 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
 
         {/* ── 4. RÉPLICA ANNOUNCEMENT (¡HAY RÉPLICA!) ────────────────────────── */}
         {subState === 'replica_announcement' && (
-          <div className="ready-screen-content glass-panel glow-pink text-center fade-in">
+          <div className="replica-screen-content glass-panel glow-red text-center fade-in">
             <div className="ready-avatar-wrapper">
-              <div className="avatar-circle" style={{ borderColor: 'var(--neon-pink)', boxShadow: 'var(--shadow-neon-pink)' }}>🔥</div>
+              <div className="avatar-circle" style={{ borderColor: '#ff3333', boxShadow: '0 0 15px rgba(255, 51, 51, 0.4)' }}>💀</div>
             </div>
 
-            <span className="ready-round-tag" style={{ color: 'var(--neon-pink)' }}>¡EMPATE DE TITANES!</span>
-            <h2 className="ready-player-title font-graffiti text-glow-pink">¡HAY RÉPLICA!</h2>
+            <span className="replica-round-tag">¡EMPATE DE TITANES!</span>
+            <h2 className="replica-title">¡RÉPLICA DE {replicaPlayers.length} COMPETIDORES!</h2>
             
-            <div className="replica-versus-box glass-panel" style={{ padding: '15px', margin: '20px 0', border: '1px dashed var(--neon-pink)' }}>
-              <div className="replica-versus-names" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px', fontWeight: 900, fontSize: '1.2rem' }}>
+            <div className="replica-versus-box">
+              <div className="replica-versus-names">
                 {replicaPlayers.map((name, idx) => (
                   <React.Fragment key={name}>
-                    {idx > 0 && <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>VS</span>}
-                    <span className="pink-text">{name}</span>
+                    {idx > 0 && <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', alignSelf: 'center' }}>VS</span>}
+                    <span style={{ color: '#ff3333', textShadow: '0 0 8px rgba(255, 51, 51, 0.3)' }}>{name}</span>
                   </React.Fragment>
                 ))}
               </div>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '8px', lineHeight: 1.4 }}>
-                Se jugará una ronda extra entre los empatados en primer puesto. El competidor con mayor puntaje al terminar se llevará la victoria.
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '8px', lineHeight: 1.4 }}>
+                Se jugará una ronda extra en formato <strong>Deathmatch</strong>. Todos los empatados deberán improvisar sobre la misma temática.
               </p>
             </div>
 
-            <button className="btn-neon-pink w-100 pulse-pink-anim" onClick={() => {
+            {replicaTheme && (
+              <div className="replica-theme-card text-center">
+                <span className="replica-theme-badge">DEATHMATCH</span>
+                <h3 className="replica-theme-title">{replicaTheme.title}</h3>
+                <p className="replica-theme-desc">{replicaTheme.desc}</p>
+                <div className="replica-theme-highlight-box">
+                  {replicaTheme.highlight}
+                </div>
+              </div>
+            )}
+
+            <button className="btn-deathmatch" onClick={() => {
               setCurrentRound(prev => prev + 1);
               setCurrentPlayerIndex(0);
               setSubState('ready');
             }}>
-              <span>INICIAR DESEMPATE</span>
+              <span>INICIAR DEATHMATCH</span>
             </button>
           </div>
         )}
