@@ -256,11 +256,11 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
 
           <div className="modes-stack">
             <button 
-              className="mode-option-card glow-teal"
+              className="mode-option-card"
               onClick={() => onNext('setup_players')}
             >
               <div className="mode-option-header">
-                <Users size={20} className="teal-text" />
+                <Users size={20} className="pink-text" />
                 <h3>Multijugador</h3>
               </div>
               <p>Competencia en equipo o 1v1 con registro de nombres, conteo de rondas, sorteo inicial y tabla de puntuaciones.</p>
