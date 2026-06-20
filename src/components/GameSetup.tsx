@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Sliders, Play, Plus, Minus, UserPlus, Check, RefreshCw, Volume2, Sparkles, BookOpen } from 'lucide-react';
+import { Users, Sliders, Play, Plus, Minus, UserPlus, Check, RefreshCw, Volume2, Sparkles, BookOpen, Compass, Radio } from 'lucide-react';
 import './GameSetup.css';
 
 interface GameSetupProps {
@@ -120,6 +120,11 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
   // Tutorial Slides
   const tutorialSteps = [
     {
+      title: "Navegación e Interacción",
+      desc: "Bienvenido al laboratorio de freestyle urbana. Navegá por los diferentes mazos de cartas, desafíos dinámicos y bases instrumentales con cronómetro de rimas incorporado y soporte en tiempo real.",
+      icon: <Compass size={40} className="teal-text" />
+    },
+    {
       title: "Mazos y Cartas",
       desc: "El juego tiene un mazo verde de Beats (ritmos de rap) y un mazo rosa de Desafíos. ¡En cada turno deberás sacar una carta de cada mazo!",
       icon: <Sparkles size={40} className="teal-text" />
@@ -133,6 +138,11 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
       title: "Puntuación en Equipo",
       desc: "Improvisa de acuerdo al desafío. Al final del turno, tus compañeros te puntuarán de 1 a 5 estrellas según tu fluidez, métrica y entrega. ¡Gana el que sume más puntos!",
       icon: <Users size={40} className="teal-text" />
+    },
+    {
+      title: "Estadísticas y Conexión",
+      desc: "Sincronizá tus bases de rap de forma fluida y accede a los informes completos y registros estadísticos de cada uno de tus combates.",
+      icon: <Radio size={40} className="pink-text" />
     }
   ];
 

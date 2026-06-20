@@ -71,10 +71,10 @@ function App() {
           setUserSession(session);
           setGameState('splash'); // Va al inicio (Jugar Ahora)
         } catch (e) {
-          setGameState('onboarding_1');
+          setGameState('auth_choice');
         }
       } else {
-        setGameState('onboarding_1'); // Login por primera vez
+        setGameState('auth_choice'); // Login por primera vez
       }
     }
   }, [isLoading]);
@@ -127,14 +127,8 @@ function App() {
   // Enrutador de retroceso de pantallas (volver atrás)
   const handleBackStep = () => {
     switch (gameState) {
-      case 'onboarding_1':
-        // Primer pantalla de onboarding, no vuelve atrás para no saltar el login
-        break;
-      case 'onboarding_2':
-        setGameState('onboarding_1');
-        break;
       case 'auth_choice':
-        setGameState('onboarding_2');
+        // Primer pantalla de autenticación, no vuelve atrás para no saltar el login
         break;
       case 'auth_password':
         setGameState('auth_choice');

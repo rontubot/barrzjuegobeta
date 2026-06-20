@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, RefreshCw, Volume2, RotateCw, Play, Pause, Square, Music, QrCode, Sparkles, User, SkipForward, Star, Award, Home, RotateCcw } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Volume2, RotateCw, Play, Pause, Square, Music, QrCode, Sparkles, User, SkipForward, Star, Award, Home, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { BEATS_DECK, CHALLENGES_DECK } from '../data/cards';
 import type { BeatCard, ChallengeCard } from '../data/cards';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -56,6 +56,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
   // Cartas activas
   const [activeBeat, setActiveBeat] = useState<BeatCard | null>(null);
   const [activeChallenge, setActiveChallenge] = useState<ChallengeCard | null>(null);
+  const [activeCardType, setActiveCardType] = useState<'challenge' | 'beat'>('challenge');
 
   // Estados de animación de cartas
   const [beatFlipped, setBeatFlipped] = useState(false);
@@ -135,22 +136,22 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
   };
 
   // Sacar cartas aleatorias
-  const drawBeat = () => {
+  const drawBeat = (delay = 150) => {
     setBeatFlipped(false);
     setTimeout(() => {
       const randomIndex = Math.floor(Math.random() * BEATS_DECK.length);
       setActiveBeat(BEATS_DECK[randomIndex]);
       setBeatFlipped(true);
-    }, 150);
+    }, delay);
   };
 
-  const drawChallenge = () => {
+  const drawChallenge = (delay = 150) => {
     setChallengeFlipped(false);
     setTimeout(() => {
       const randomIndex = Math.floor(Math.random() * availableChallenges.length);
       setActiveChallenge(availableChallenges[randomIndex]);
       setChallengeFlipped(true);
-    }, 150);
+    }, delay);
   };
 
   // Terminar improvisación e ir a puntuar
@@ -231,8 +232,9 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
   // Comenzar el turno (ocultar ready screen y cargar cartas)
   const handleStartTurn = () => {
     setSubState('playing');
-    drawBeat();
-    drawChallenge();
+    setActiveCardType('challenge'); // Desafío al frente por defecto
+    drawBeat(1000); // 1.0s delay for turn intro flip
+    drawChallenge(1000); // 1.0s delay for turn intro flip
   };
 
   // Reiniciar partida actual
@@ -378,198 +380,220 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
         {/* ── 2. GAMEPLAY ZONE ────────────────────────────────────────────── */}
         {subState === 'playing' && (
           <>
-            <div className="game-board">
-              {/* Lado del Beat */}
-              <div className="deck-column">
-                <h2 className="column-title teal-text">BEATS</h2>
+            <div className="game-board-carousel-wrapper">
+              {/* Botón Flecha Izquierda */}
+              <button 
+                type="button"
+                className="btn-carousel-nav left"
+                onClick={() => setActiveCardType(activeCardType === 'challenge' ? 'beat' : 'challenge')}
+                title="Cambiar de carta"
+              >
+                <ChevronLeft size={28} />
+              </button>
 
-                {!activeBeat ? (
-                  <div className="deck-pile beat-pile glass-panel glow-teal" onClick={drawBeat}>
-                    <div className="deck-card-back teal-bg">
-                      <span className="card-logo-text pink-glow-text">BEATS</span>
-                      <span className="tap-instruction">TOCAR PARA SACAR</span>
-                    </div>
-                    <div className="stacked-card card-1"></div>
-                    <div className="stacked-card card-2"></div>
-                  </div>
-                ) : (
-                  <div className="card-container-3d">
-                    <div className={`card-inner-3d ${beatFlipped ? 'flipped' : ''}`}>
-                      <div className="card-face card-back glow-teal" style={{ borderColor: 'var(--neon-teal)' }}>
-                        <span className="card-logo-text pink-glow-text">BEATS</span>
-                      </div>
-
-                      <div className="card-face card-front glow-pink" style={{ borderColor: 'var(--neon-pink)' }}>
-                        <div className="card-pattern-overlay beats-pattern"></div>
-
-                        <div className="card-header-pink">
-                          <Music size={16} />
-                          <span>INST. BEAT</span>
-                        </div>
-
-                        <div className="beat-card-body">
-                          <h3 className="beat-title">{activeBeat.name}</h3>
-
-                          <div
-                            className={`bpm-indicator ${isMetronomeOn ? 'pulsing' : ''}`}
-                            style={{
-                              animationDuration: `${bpmPulseDuration}s`,
-                              borderColor: 'var(--neon-teal)'
-                            }}
-                            onClick={(e) => { e.stopPropagation(); setIsMetronomeOn(!isMetronomeOn); }}
-                          >
-                            <Volume2 size={36} className="teal-text" />
-                            <span className="bpm-number">{activeBeat.bpm}</span>
-                            <span className="bpm-label">BPM</span>
-                          </div>
-
-                          <p className="bpm-help-text">El altavoz pulsa al ritmo de la instrumental.</p>
-                        </div>
-
-                        <div className="beat-card-footer">
-                          <div className="qr-container-sim" onClick={(e) => { e.stopPropagation(); openSpotify(activeBeat); }}>
-                            <QrCode size={48} className="pink-text" />
-                            <span className="qr-scan-label">CLICK PARA ABRIR</span>
-                          </div>
-
-                          <button className="btn-spotify-link" onClick={(e) => { e.stopPropagation(); openSpotify(activeBeat); }}>
-                            <Play size={14} fill="currentColor" />
-                            ABRIR EN SPOTIFY
-                          </button>
-                        </div>
-
-                        <button className="btn-card-redraw" onClick={(e) => { e.stopPropagation(); drawBeat(); }}>
-                          <RefreshCw size={12} /> Cambiar Beat
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Lado del Desafío */}
-              <div className="deck-column">
-                <h2 className="column-title pink-text">DESAFÍOS</h2>
-
-                {!activeChallenge ? (
-                  <div className="deck-pile challenge-pile glass-panel glow-pink" onClick={drawChallenge}>
-                    <div className="deck-card-back pink-bg">
-                      <span className="card-logo-text teal-glow-text">DESAFIOS</span>
-                      <span className="tap-instruction">TOCAR PARA SACAR</span>
-                    </div>
-                    <div className="stacked-card card-1"></div>
-                    <div className="stacked-card card-2"></div>
-                  </div>
-                ) : (
-                  <div className="card-container-3d">
-                    <div className={`card-inner-3d ${challengeFlipped ? 'flipped' : ''}`}>
-                      <div className="card-face card-back glow-pink" style={{ borderColor: 'var(--neon-pink)' }}>
+              <div className="card-stack-carousel">
+                {/* 1. CARTA DE DESAFÍO (ESTILO DE JUEGO) */}
+                <div className={`carousel-card-wrapper ${activeCardType === 'challenge' ? 'front-card' : 'back-card'}`}>
+                  <h3 className="carousel-card-tag pink-text">Desafío (Estilo de Juego)</h3>
+                  {!activeChallenge ? (
+                    <div className="deck-pile challenge-pile glass-panel glow-pink" onClick={() => drawChallenge(400)}>
+                      <div className="deck-card-back pink-bg">
                         <span className="card-logo-text teal-glow-text">DESAFIOS</span>
+                        <span className="tap-instruction">TOCAR PARA SACAR</span>
                       </div>
-
-                      <div className="card-face card-front glow-teal" style={{ borderColor: 'var(--neon-teal)' }}>
-                        <div className={`card-pattern-overlay challenge-pattern ${activeChallenge.category}`}></div>
-
-                        <div className={`card-header-teal category-${activeChallenge.category}`}>
-                          <Sparkles size={14} />
-                          <span>{activeChallenge.category.toUpperCase()}</span>
+                      <div className="stacked-card card-1"></div>
+                      <div className="stacked-card card-2"></div>
+                    </div>
+                  ) : (
+                    <div className="card-container-3d">
+                      <div className={`card-inner-3d ${challengeFlipped ? 'flipped' : ''}`}>
+                        <div className="card-face card-back glow-pink" style={{ borderColor: 'var(--neon-pink)' }}>
+                          <img src="/Barrzjuego.png" alt="BARRZ Logo" className="card-back-logo" />
+                          <span className="card-logo-text teal-glow-text">DESAFIOS</span>
                         </div>
 
-                        <div className="challenge-card-body">
-                          {activeChallenge.category === 'palabras' && (
-                            <div className={`words-challenge-layout ${wordsRotated ? 'rotated-180' : ''}`}>
-                              <div className="words-side top-side">
-                                <span className="words-direction-label">TU TURNO:</span>
-                                <div className="words-grid">
-                                  {activeChallenge.wordsTop?.map((w, idx) => (
-                                    <span key={idx} className="word-badge pink-glow-text">{w}</span>
-                                  ))}
-                                </div>
-                              </div>
+                        <div className="card-face card-front glow-teal" style={{ borderColor: 'var(--neon-teal)' }}>
+                          <div className={`card-pattern-overlay challenge-pattern ${activeChallenge.category}`}></div>
 
-                              <div className="words-divider">
-                                <button className="btn-rotate-words" onClick={() => setWordsRotated(!wordsRotated)}>
-                                  <RotateCw size={16} />
-                                  <span>GIRAR CARTA</span>
-                                </button>
-                              </div>
+                          <div className={`card-header-teal category-${activeChallenge.category}`}>
+                            <Sparkles size={14} />
+                            <span>{activeChallenge.category.toUpperCase()}</span>
+                          </div>
 
-                              <div className="words-side bottom-side">
-                                <span className="words-direction-label">RIVAL (OPONENTE):</span>
-                                <div className="words-grid">
-                                  {activeChallenge.wordsBottom?.map((w, idx) => (
-                                    <span key={idx} className="word-badge teal-glow-text">{w}</span>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          )}
-
-                          {activeChallenge.category === 'beatbox' && (
-                            <div className="beatbox-challenge-layout">
-                              <h3 className="challenge-main-title">{activeChallenge.title}</h3>
-                              <p className="challenge-desc-text">{activeChallenge.description}</p>
-
-                              <div className="beatbox-keyword-box">
-                                <span className="keyword-label">TEMÁTICA:</span>
-                                <h4 className="keyword-highlight">{activeChallenge.highlightText}</h4>
-                              </div>
-
-                              <div className="timer-widget glass-panel">
-                                <div className={`timer-display ${timerSeconds <= 10 && timerRunning ? 'critical-time' : ''}`}>
-                                  <span className="timer-digits">
-                                    {Math.floor(timerSeconds / 60)}:{(timerSeconds % 60).toString().padStart(2, '0')}
-                                  </span>
+                          <div className="challenge-card-body">
+                            {activeChallenge.category === 'palabras' && (
+                              <div className={`words-challenge-layout ${wordsRotated ? 'rotated-180' : ''}`}>
+                                <div className="words-side top-side">
+                                  <span className="words-direction-label">TU TURNO:</span>
+                                  <div className="words-grid">
+                                    {activeChallenge.wordsTop?.map((w, idx) => (
+                                      <span key={idx} className="word-badge pink-glow-text">{w}</span>
+                                    ))}
+                                  </div>
                                 </div>
 
-                                <div className="timer-controls">
-                                  {!timerRunning ? (
-                                    <button className="timer-btn btn-play-timer" onClick={startTimer}>
-                                      <Play size={14} fill="currentColor" /> Iniciar
-                                    </button>
-                                  ) : (
-                                    <button className="timer-btn btn-pause-timer" onClick={pauseTimer}>
-                                      <Pause size={14} fill="currentColor" /> Pausar
-                                    </button>
-                                  )}
-                                  <button className="timer-btn btn-reset-timer" onClick={resetTimer}>
-                                    <Square size={12} fill="currentColor" /> Reset
+                                <div className="words-divider">
+                                  <button className="btn-rotate-words" onClick={() => setWordsRotated(!wordsRotated)}>
+                                    <RotateCw size={16} />
+                                    <span>GIRAR CARTA</span>
                                   </button>
                                 </div>
-                              </div>
-                            </div>
-                          )}
 
-                          {activeChallenge.category !== 'palabras' && activeChallenge.category !== 'beatbox' && (
-                            <div className="standard-challenge-layout">
-                              <h3 className="challenge-main-title">{activeChallenge.title}</h3>
-                              <p className="challenge-desc-text">{activeChallenge.description}</p>
-
-                              <div className="concept-large-box">
-                                <h4 className="concept-large-text pink-glow-text">
-                                  {activeChallenge.highlightText}
-                                </h4>
+                                <div className="words-side bottom-side">
+                                  <span className="words-direction-label">RIVAL (OPONENTE):</span>
+                                  <div className="words-grid">
+                                    {activeChallenge.wordsBottom?.map((w, idx) => (
+                                      <span key={idx} className="word-badge teal-glow-text">{w}</span>
+                                    ))}
+                                  </div>
+                                </div>
                               </div>
+                            )}
 
-                              <div className="street-sticker">
-                                <span>FREESTYLE RULE</span>
+                            {activeChallenge.category === 'beatbox' && (
+                              <div className="beatbox-challenge-layout">
+                                <h3 className="challenge-main-title">{activeChallenge.title}</h3>
+                                <p className="challenge-desc-text">{activeChallenge.description}</p>
+
+                                <div className="beatbox-keyword-box">
+                                  <span className="keyword-label">TEMÁTICA:</span>
+                                  <h4 className="keyword-highlight">{activeChallenge.highlightText}</h4>
+                                </div>
+
+                                <div className="timer-widget glass-panel">
+                                  <div className={`timer-display ${timerSeconds <= 10 && timerRunning ? 'critical-time' : ''}`}>
+                                    <span className="timer-digits">
+                                      {Math.floor(timerSeconds / 60)}:{(timerSeconds % 60).toString().padStart(2, '0')}
+                                    </span>
+                                  </div>
+
+                                  <div className="timer-controls">
+                                    {!timerRunning ? (
+                                      <button className="timer-btn btn-play-timer" onClick={startTimer}>
+                                        <Play size={14} fill="currentColor" /> Iniciar
+                                      </button>
+                                    ) : (
+                                      <button className="timer-btn btn-pause-timer" onClick={pauseTimer}>
+                                        <Pause size={14} fill="currentColor" /> Pausar
+                                      </button>
+                                    )}
+                                    <button className="timer-btn btn-reset-timer" onClick={resetTimer}>
+                                      <Square size={12} fill="currentColor" /> Reset
+                                    </button>
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                          )}
+                            )}
+
+                            {activeChallenge.category !== 'palabras' && activeChallenge.category !== 'beatbox' && (
+                              <div className="standard-challenge-layout">
+                                <h3 className="challenge-main-title">{activeChallenge.title}</h3>
+                                <p className="challenge-desc-text">{activeChallenge.description}</p>
+
+                                <div className="concept-large-box">
+                                  <h4 className="concept-large-text pink-glow-text">
+                                    {activeChallenge.highlightText}
+                                  </h4>
+                                </div>
+
+                                <div className="street-sticker">
+                                  <span>FREESTYLE RULE</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="challenge-card-footer">
+                            <span className="card-brand">BARRZJUEGO ©</span>
+                          </div>
+
+                          <button className="btn-card-redraw" onClick={(e) => { e.stopPropagation(); drawChallenge(400); }}>
+                            <RefreshCw size={12} /> Cambiar Desafío
+                          </button>
                         </div>
-
-                        <div className="challenge-card-footer">
-                          <span className="card-brand">BARRZJUEGO ©</span>
-                        </div>
-
-                        <button className="btn-card-redraw" onClick={(e) => { e.stopPropagation(); drawChallenge(); }}>
-                          <RefreshCw size={12} /> Cambiar Desafío
-                        </button>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
+
+                {/* 2. CARTA DE BEAT (MÚSICA) */}
+                <div className={`carousel-card-wrapper ${activeCardType === 'beat' ? 'front-card' : 'back-card'}`}>
+                  <h3 className="carousel-card-tag teal-text">Beat (Instrumental)</h3>
+                  {!activeBeat ? (
+                    <div className="deck-pile beat-pile glass-panel glow-teal" onClick={() => drawBeat(400)}>
+                      <div className="deck-card-back teal-bg">
+                        <span className="card-logo-text pink-glow-text">BEATS</span>
+                        <span className="tap-instruction">TOCAR PARA SACAR</span>
+                      </div>
+                      <div className="stacked-card card-1"></div>
+                      <div className="stacked-card card-2"></div>
+                    </div>
+                  ) : (
+                    <div className="card-container-3d">
+                      <div className={`card-inner-3d ${beatFlipped ? 'flipped' : ''}`}>
+                        <div className="card-face card-back glow-teal" style={{ borderColor: 'var(--neon-teal)' }}>
+                          <img src="/Barrzjuego.png" alt="BARRZ Logo" className="card-back-logo" />
+                          <span className="card-logo-text pink-glow-text">BEATS</span>
+                        </div>
+
+                        <div className="card-face card-front glow-pink" style={{ borderColor: 'var(--neon-pink)' }}>
+                          <div className="card-pattern-overlay beats-pattern"></div>
+
+                          <div className="card-header-pink">
+                            <Music size={16} />
+                            <span>INST. BEAT</span>
+                          </div>
+
+                          <div className="beat-card-body">
+                            <h3 className="beat-title">{activeBeat.name}</h3>
+
+                            <div
+                              className={`bpm-indicator ${isMetronomeOn ? 'pulsing' : ''}`}
+                              style={{
+                                animationDuration: `${bpmPulseDuration}s`,
+                                borderColor: 'var(--neon-teal)'
+                              }}
+                              onClick={(e) => { e.stopPropagation(); setIsMetronomeOn(!isMetronomeOn); }}
+                            >
+                              <Volume2 size={36} className="teal-text" />
+                              <span className="bpm-number">{activeBeat.bpm}</span>
+                              <span className="bpm-label">BPM</span>
+                            </div>
+
+                            <p className="bpm-help-text">El altavoz pulsa al ritmo de la instrumental.</p>
+                          </div>
+
+                          <div className="beat-card-footer">
+                            <div className="qr-container-sim" onClick={(e) => { e.stopPropagation(); openSpotify(activeBeat); }}>
+                              <QrCode size={48} className="pink-text" />
+                              <span className="qr-scan-label">CLICK PARA ABRIR</span>
+                            </div>
+
+                            <button className="btn-spotify-link" onClick={(e) => { e.stopPropagation(); openSpotify(activeBeat); }}>
+                              <Play size={14} fill="currentColor" />
+                              ABRIR EN SPOTIFY
+                            </button>
+                          </div>
+
+                          <button className="btn-card-redraw" onClick={(e) => { e.stopPropagation(); drawBeat(400); }}>
+                            <RefreshCw size={12} /> Cambiar Beat
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
+
+              {/* Botón Flecha Derecha */}
+              <button 
+                type="button"
+                className="btn-carousel-nav right"
+                onClick={() => setActiveCardType(activeCardType === 'challenge' ? 'beat' : 'challenge')}
+                title="Cambiar de carta"
+              >
+                <ChevronRight size={28} />
+              </button>
             </div>
 
             {/* Acciones de Footer */}

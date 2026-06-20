@@ -85,7 +85,7 @@ export const OnboardingAuth: React.FC<OnboardingAuthProps> = ({ step, onNext, on
       <div className="grunge-overlay"></div>
       
       {/* Botón de volver */}
-      {step !== 'onboarding_1' && (
+      {step !== 'auth_choice' && (
         <button className="btn-auth-back" onClick={onBack}>
           <ArrowLeft size={18} />
           <span>Atrás</span>
