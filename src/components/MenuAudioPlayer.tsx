@@ -36,6 +36,7 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
   const prevGameStateRef = useRef<string>(gameState);
   
   const currentTrack = SOUNDTRACKS[currentTrackIndex];
+  const volumePercentage = (isMuted ? 0 : volume) * 100;
 
   // 1. Inicializar y manejar cambios de pista
   useEffect(() => {
@@ -486,6 +487,9 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
               onChange={handleVolumeChange}
               title="Ajustar volumen"
               disabled={isGame}
+              style={{
+                background: `linear-gradient(to right, var(--neon-pink) 0%, var(--neon-pink) ${volumePercentage}%, rgba(255, 255, 255, 0.15) ${volumePercentage}%, rgba(255, 255, 255, 0.15) 100%)`
+              }}
             />
           </div>
         </div>
