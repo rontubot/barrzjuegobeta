@@ -39,27 +39,55 @@ function App() {
   const [gameState, setGameState] = useState<GameState>('splash');
   const [cameFromGame, setCameFromGame] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showLoaderBar, setShowLoaderBar] = useState(false);
   
   // Datos compartidos de sesión y partida
   const [userSession, setUserSession] = useState<UserSession | null>(null);
   const [gameSettings, setGameSettings] = useState<GameSettings | null>(null);
 
+  // Secuencia de carga: 3s logo solo + 4s barra de carga
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const showBarTimer = setTimeout(() => {
+      setShowLoaderBar(true);
+    }, 3000);
+
+    const finishLoadingTimer = setTimeout(() => {
       setIsLoading(false);
-    }, 2000);
-    return () => clearTimeout(timer);
+    }, 7000);
+
+    return () => {
+      clearTimeout(showBarTimer);
+      clearTimeout(finishLoadingTimer);
+    };
   }, []);
+
+  // Restaurar y verificar sesión una vez terminada la carga
+  useEffect(() => {
+    if (!isLoading) {
+      const savedSession = localStorage.getItem('barrz_session');
+      if (savedSession) {
+        try {
+          const session = JSON.parse(savedSession);
+          setUserSession(session);
+          setGameState('splash'); // Va al inicio (Jugar Ahora)
+        } catch (e) {
+          setGameState('onboarding_1');
+        }
+      } else {
+        setGameState('onboarding_1'); // Login por primera vez
+      }
+    }
+  }, [isLoading]);
 
   const handleStartGame = () => {
     setCameFromGame(false);
-    setGameState('onboarding_1');
+    setGameState('tutorial_ask');
   };
 
   const handleBackToMenu = () => {
     setCameFromGame(true);
-    // Al volver al menú desde el juego, regresamos directamente al Lobby
-    setGameState('lobby_start');
+    // Al volver al menú desde el juego, regresamos directamente a Splash
+    setGameState('splash');
   };
 
   // Enrutador de avance de pantallas
@@ -67,11 +95,13 @@ function App() {
     if (data) {
       // Registrar sesión de usuario
       if (data.loggedIn) {
-        setUserSession({
+        const session = {
           email: data.email,
           loggedIn: true,
           method: data.method
-        });
+        };
+        setUserSession(session);
+        localStorage.setItem('barrz_session', JSON.stringify(session));
       }
 
       // Al iniciar el combate directo (desde deck selection, solo mode o rápido)
@@ -85,14 +115,20 @@ function App() {
         });
       }
     }
-    setGameState(nextStep as GameState);
+    
+    // Al finalizar el login (que iba a lobby_start), ir directamente a splash
+    if (nextStep === 'lobby_start') {
+      setGameState('splash');
+    } else {
+      setGameState(nextStep as GameState);
+    }
   };
 
   // Enrutador de retroceso de pantallas (volver atrás)
   const handleBackStep = () => {
     switch (gameState) {
       case 'onboarding_1':
-        setGameState('splash');
+        // Primer pantalla de onboarding, no vuelve atrás para no saltar el login
         break;
       case 'onboarding_2':
         setGameState('onboarding_1');
@@ -109,10 +145,11 @@ function App() {
       case 'lobby_start':
         // Log out y volver al registro
         setUserSession(null);
+        localStorage.removeItem('barrz_session');
         setGameState('auth_choice');
         break;
       case 'tutorial_ask':
-        setGameState('lobby_start');
+        setGameState('splash');
         break;
       case 'mode_selection':
         setGameState('tutorial_ask');
@@ -138,9 +175,11 @@ function App() {
         <div className="grunge-overlay"></div>
         <div className="loader-content">
           <img src="/Barrzjuego.png" alt="Cargando Barrzjuego..." className="loader-logo" />
-          <div className="loader-bar-container">
-            <div className="loader-bar"></div>
-          </div>
+          {showLoaderBar && (
+            <div className="loader-bar-container">
+              <div className="loader-bar"></div>
+            </div>
+          )}
         </div>
       </div>
     );
