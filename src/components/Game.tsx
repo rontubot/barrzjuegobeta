@@ -393,7 +393,14 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
 
               <div className="card-stack-carousel">
                 {/* 1. CARTA DE DESAFÍO (ESTILO DE JUEGO) */}
-                <div className={`carousel-card-wrapper ${activeCardType === 'challenge' ? 'front-card' : 'back-card'}`}>
+                <div 
+                  className={`carousel-card-wrapper ${activeCardType === 'challenge' ? 'front-card' : 'back-card'}`}
+                  onClick={() => {
+                    if (activeCardType !== 'challenge') {
+                      setActiveCardType('challenge');
+                    }
+                  }}
+                >
                   <h3 className="carousel-card-tag pink-text">Desafío (Estilo de Juego)</h3>
                   {!activeChallenge ? (
                     <div className="deck-pile challenge-pile glass-panel glow-pink" onClick={() => drawChallenge(400)}>
@@ -517,7 +524,14 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                 </div>
 
                 {/* 2. CARTA DE BEAT (MÚSICA) */}
-                <div className={`carousel-card-wrapper ${activeCardType === 'beat' ? 'front-card' : 'back-card'}`}>
+                <div 
+                  className={`carousel-card-wrapper ${activeCardType === 'beat' ? 'front-card' : 'back-card'}`}
+                  onClick={() => {
+                    if (activeCardType !== 'beat') {
+                      setActiveCardType('beat');
+                    }
+                  }}
+                >
                   <h3 className="carousel-card-tag teal-text">Beat (Instrumental)</h3>
                   {!activeBeat ? (
                     <div className="deck-pile beat-pile glass-panel glow-teal" onClick={() => drawBeat(400)}>
@@ -599,10 +613,9 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
             {/* Acciones de Footer */}
             <div className="game-footer-actions">
               <button
-                className="btn-next-turn pulse-pink-anim"
+                className={`btn-next-turn ${activeCardType === 'beat' ? 'pulse-pink-anim' : ''}`}
                 onClick={handleFinishImprovisation}
-                disabled={!activeBeat && !activeChallenge}
-                style={{ opacity: (!activeBeat && !activeChallenge) ? 0.5 : 1 }}
+                disabled={activeCardType !== 'beat'}
               >
                 <span>{mode === 'solo' ? 'Siguiente Turno' : 'Terminar Turno'}</span>
                 <SkipForward size={18} fill="currentColor" />
