@@ -46,17 +46,26 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
 
     const audio = new Audio(currentTrack.url);
     audio.loop = false;
-    audio.volume = isMuted ? 0 : volume;
+    audio.volume = 0; // Iniciar en 0 para fundido de entrada (fade-in)
     audioRef.current = audio;
 
-    // Al finalizar la pista, reproducir otra aleatoriamente
+    // Al finalizar la pista, reproducir otra aleatoriamente (sin fade-out previo)
     audio.onended = () => {
-      playNextRandom();
+      let nextIndex = currentTrackIndex;
+      if (SOUNDTRACKS.length > 1) {
+        while (nextIndex === currentTrackIndex) {
+          nextIndex = Math.floor(Math.random() * SOUNDTRACKS.length);
+        }
+      } else {
+        nextIndex = 0;
+      }
+      setIsPlaying(true);
+      setCurrentTrackIndex(nextIndex);
     };
 
     // Intentar reproducir respetando políticas de navegador
     if (isPlaying && gameState !== 'game') {
-      attemptPlay();
+      attemptPlayWithFadeIn();
     }
 
     // Mostrar banner deslizante estilo FIFA
@@ -80,17 +89,44 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
     }, 4500); // Se oculta tras 4.5 segundos
   };
 
-  // Intentar reproducir, con bypass de autoplay si es bloqueado
-  const attemptPlay = () => {
+  // Intentar reproducir, con bypass de autoplay si es bloqueado, aplicando fade-in
+  const attemptPlayWithFadeIn = () => {
     if (!audioRef.current) return;
 
-    audioRef.current.play().catch(() => {
+    audioRef.current.volume = 0; // Iniciar en silencio
+    audioRef.current.play().then(() => {
+      // Si la reproducción es exitosa, iniciar fade-in
+      if (fadeIntervalRef.current) {
+        clearInterval(fadeIntervalRef.current);
+      }
+
+      const targetVol = isMuted ? 0 : volume;
+      let curVol = 0;
+      const steps = 15;
+      const stepTime = 25; // 375ms total
+      const volDelta = targetVol / steps;
+
+      fadeIntervalRef.current = setInterval(() => {
+        curVol = Math.min(targetVol, curVol + volDelta);
+        if (audioRef.current) {
+          audioRef.current.volume = curVol;
+        }
+
+        if (curVol >= targetVol) {
+          clearInterval(fadeIntervalRef.current);
+          fadeIntervalRef.current = null;
+          if (audioRef.current) {
+            audioRef.current.volume = targetVol;
+          }
+        }
+      }, stepTime);
+    }).catch(() => {
       console.log("Autoplay bloqueado temporalmente por el navegador. Esperando interacción.");
       
       // Listener para desbloquear audio tras la primera interacción
       const unlockAudio = () => {
         if (audioRef.current && isPlaying && gameState !== 'game') {
-          audioRef.current.play().catch(e => console.log("Error al desbloquear audio:", e));
+          attemptPlayWithFadeIn();
         }
         window.removeEventListener('click', unlockAudio);
         window.removeEventListener('keydown', unlockAudio);
@@ -191,6 +227,50 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
     };
   }, [gameState, isPlaying, volume, isMuted]);
 
+  // Cambiar canción aplicando un fade-out suave antes de pasar a la siguiente
+  const changeTrackWithFade = (nextIndex: number) => {
+    if (!audioRef.current || !isPlaying || isMuted || gameState === 'game') {
+      // Si está en silencio, pausado o en combate, cambiar tema instantáneamente
+      setIsPlaying(true);
+      setCurrentTrackIndex(nextIndex);
+      return;
+    }
+
+    // Si el volumen ya es muy bajo (por spam de clicks o final de pista), cambiar tema al instante para mantener la respuesta
+    if (audioRef.current.volume < 0.1) {
+      setIsPlaying(true);
+      setCurrentTrackIndex(nextIndex);
+      return;
+    }
+
+    if (fadeIntervalRef.current) {
+      clearInterval(fadeIntervalRef.current);
+      fadeIntervalRef.current = null;
+    }
+
+    // --- FADE OUT DE LA CANCIÓN ACTUAL ---
+    const startVol = audioRef.current.volume;
+    let curVol = startVol;
+    const steps = 12;
+    const stepTime = 25; // 300ms fade-out para agilizar el cambio
+    const volDelta = startVol / steps;
+
+    fadeIntervalRef.current = setInterval(() => {
+      curVol = Math.max(0, curVol - volDelta);
+      if (audioRef.current) {
+        audioRef.current.volume = curVol;
+      }
+
+      if (curVol <= 0) {
+        clearInterval(fadeIntervalRef.current);
+        fadeIntervalRef.current = null;
+        // Al finalizar el fade out, cambiamos el track (esto disparará el useEffect con su respectivo fade-in)
+        setIsPlaying(true);
+        setCurrentTrackIndex(nextIndex);
+      }
+    }, stepTime);
+  };
+
   // Selección de siguiente pista (aleatoria sin repetir la actual inmediatamente)
   const playNextRandom = () => {
     let nextIndex = currentTrackIndex;
@@ -201,10 +281,7 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
     } else {
       nextIndex = 0;
     }
-    
-    // Si estaba pausado, reactivar reproducción al cambiar de tema
-    setIsPlaying(true);
-    setCurrentTrackIndex(nextIndex);
+    changeTrackWithFade(nextIndex);
   };
 
   // Selección de pista anterior (aleatoria para mantener la experiencia de FIFA)
@@ -217,8 +294,7 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
     } else {
       prevIndex = 0;
     }
-    setIsPlaying(true);
-    setCurrentTrackIndex(prevIndex);
+    changeTrackWithFade(prevIndex);
   };
 
   // Toggle Play / Pausa
