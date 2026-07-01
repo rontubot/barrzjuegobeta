@@ -15,6 +15,7 @@ type GameState =
   | 'auth_verify'
   | 'lobby_start'
   | 'tutorial_ask'
+  | 'link_spotify'
   | 'mode_selection'
   | 'setup_players'
   | 'setup_rounds'
@@ -145,8 +146,11 @@ function App() {
       case 'tutorial_ask':
         setGameState('splash');
         break;
-      case 'mode_selection':
+      case 'link_spotify':
         setGameState('tutorial_ask');
+        break;
+      case 'mode_selection':
+        setGameState('link_spotify');
         break;
       case 'setup_players':
         setGameState('mode_selection');

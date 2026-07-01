@@ -29,6 +29,30 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
   const [showBanner, setShowBanner] = useState<boolean>(false);
   const [isPanelOpen, setIsPanelOpen] = useState<boolean>(false);
   
+  const [history, setHistory] = useState<number[]>([]);
+  const [playedPool, setPlayedPool] = useState<number[]>([]);
+
+  const currentTrackIndexRef = useRef(currentTrackIndex);
+  const playedPoolRef = useRef(playedPool);
+  const historyRef = useRef(history);
+
+  useEffect(() => {
+    currentTrackIndexRef.current = currentTrackIndex;
+  }, [currentTrackIndex]);
+
+  useEffect(() => {
+    playedPoolRef.current = playedPool;
+  }, [playedPool]);
+
+  useEffect(() => {
+    historyRef.current = history;
+  }, [history]);
+
+  // Inicializar el pool con la pista inicial elegida
+  useEffect(() => {
+    setPlayedPool([currentTrackIndex]);
+  }, []);
+  
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fadeIntervalRef = useRef<any>(null);
   const bannerTimeoutRef = useRef<any>(null);
@@ -50,16 +74,33 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
     audio.volume = 0; // Iniciar en 0 para fundido de entrada (fade-in)
     audioRef.current = audio;
 
-    // Al finalizar la pista, reproducir otra aleatoriamente (sin fade-out previo)
+    // Al finalizar la pista, reproducir otra sin repetir en la misma sesión
     audio.onended = () => {
-      let nextIndex = currentTrackIndex;
-      if (SOUNDTRACKS.length > 1) {
-        while (nextIndex === currentTrackIndex) {
-          nextIndex = Math.floor(Math.random() * SOUNDTRACKS.length);
+      const currentIdx = currentTrackIndexRef.current;
+      const pool = playedPoolRef.current;
+      
+      if (SOUNDTRACKS.length <= 1) {
+        if (audioRef.current) {
+          audioRef.current.currentTime = 0;
+          audioRef.current.play().catch(e => console.log(e));
         }
-      } else {
-        nextIndex = 0;
+        return;
       }
+
+      let unplayed = SOUNDTRACKS.map((_, i) => i).filter(i => !pool.includes(i));
+      let nextIndex = 0;
+
+      if (unplayed.length === 0) {
+        unplayed = SOUNDTRACKS.map((_, i) => i).filter(i => i !== currentIdx);
+        if (unplayed.length === 0) unplayed = [0];
+        nextIndex = unplayed[Math.floor(Math.random() * unplayed.length)];
+        setPlayedPool([nextIndex]);
+      } else {
+        nextIndex = unplayed[Math.floor(Math.random() * unplayed.length)];
+        setPlayedPool(prev => [...prev, nextIndex]);
+      }
+
+      setHistory(prev => [...prev, currentIdx]);
       setIsPlaying(true);
       setCurrentTrackIndex(nextIndex);
     };
@@ -272,29 +313,44 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
     }, stepTime);
   };
 
-  // Selección de siguiente pista (aleatoria sin repetir la actual inmediatamente)
+  // Selección de siguiente pista (aleatoria sin repetir temas en la sesión)
   const playNextRandom = () => {
-    let nextIndex = currentTrackIndex;
-    if (SOUNDTRACKS.length > 1) {
-      while (nextIndex === currentTrackIndex) {
-        nextIndex = Math.floor(Math.random() * SOUNDTRACKS.length);
-      }
-    } else {
-      nextIndex = 0;
+    if (SOUNDTRACKS.length <= 1) {
+      changeTrackWithFade(0);
+      return;
     }
+
+    let unplayed = SOUNDTRACKS.map((_, i) => i).filter(i => !playedPool.includes(i));
+    let nextIndex = 0;
+
+    if (unplayed.length === 0) {
+      unplayed = SOUNDTRACKS.map((_, i) => i).filter(i => i !== currentTrackIndex);
+      if (unplayed.length === 0) unplayed = [0];
+      nextIndex = unplayed[Math.floor(Math.random() * unplayed.length)];
+      setPlayedPool([nextIndex]);
+    } else {
+      nextIndex = unplayed[Math.floor(Math.random() * unplayed.length)];
+      setPlayedPool(prev => [...prev, nextIndex]);
+    }
+
+    setHistory(prev => [...prev, currentTrackIndex]);
     changeTrackWithFade(nextIndex);
   };
 
-  // Selección de pista anterior (aleatoria para mantener la experiencia de FIFA)
+  // Selección de pista anterior (regresar a la canción que ya pasó en la sesión)
   const playPrevRandom = () => {
-    let prevIndex = currentTrackIndex;
-    if (SOUNDTRACKS.length > 1) {
-      while (prevIndex === currentTrackIndex) {
-        prevIndex = Math.floor(Math.random() * SOUNDTRACKS.length);
-      }
-    } else {
-      prevIndex = 0;
+    if (history.length === 0) {
+      // Si no hay historial, no retroceder
+      return;
     }
+
+    const prevHistory = [...history];
+    const prevIndex = prevHistory.pop()!;
+    
+    setHistory(prevHistory);
+    // Quitar del pool de reproducidas para que pueda volver a salir
+    setPlayedPool(prev => prev.filter(i => i !== currentTrackIndex));
+    
     changeTrackWithFade(prevIndex);
   };
 

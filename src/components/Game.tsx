@@ -61,6 +61,11 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
   const [selectedRating, setSelectedRating] = useState<number>(3); // Estrellas por defecto: 3
   const [currentVoterIndex, setCurrentVoterIndex] = useState<number>(0);
   const [votesReceived, setVotesReceived] = useState<Record<string, number>>({});
+  
+  const [showSpotifyPlayer, setShowSpotifyPlayer] = useState(true);
+  const [spotifyPlaying, setSpotifyPlaying] = useState(false);
+  const [spotifyProgress, setSpotifyProgress] = useState(0);
+  const [isSpotifyLinked, setIsSpotifyLinked] = useState(() => localStorage.getItem('barrz_spotify_linked') === 'true');
 
   // Estados para Réplicas (Desempate)
   const [isReplicaActive, setIsReplicaActive] = useState(false);
@@ -111,6 +116,31 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
       }
     }
   }, [startingPlayer, playerNames, isReplicaActive]);
+
+  // Simulador de barra de progreso de Spotify
+  useEffect(() => {
+    let interval: any = null;
+    if (spotifyPlaying && subState === 'playing') {
+      interval = setInterval(() => {
+        setSpotifyProgress(prev => {
+          if (prev >= 90) return 0;
+          return prev + 1;
+        });
+      }, 1000);
+    } else {
+      if (interval) clearInterval(interval);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [spotifyPlaying, subState]);
+
+  // Resetear progreso al cambiar de beat o turno
+  useEffect(() => {
+    setSpotifyProgress(0);
+    setSpotifyPlaying(false);
+    setIsSpotifyLinked(localStorage.getItem('barrz_spotify_linked') === 'true');
+  }, [activeBeat, subState]);
 
   // Manejo del temporizador
   useEffect(() => {
@@ -594,38 +624,121 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                           <div className="card-header-pink">
                             <Music size={16} />
                             <span>INST. BEAT</span>
-                          </div>
-
-                          <div className="beat-card-body">
-                            <h3 className="beat-title">{activeBeat.name}</h3>
-
-                            <div
-                              className={`bpm-indicator ${isMetronomeOn ? 'pulsing' : ''}`}
-                              style={{
-                                animationDuration: `${bpmPulseDuration}s`,
-                                borderColor: 'var(--neon-teal)'
-                              }}
-                              onClick={(e) => { e.stopPropagation(); setIsMetronomeOn(!isMetronomeOn); }}
+                            <button 
+                              type="button" 
+                              className={`btn-spotify-card-toggle ${showSpotifyPlayer ? 'active' : ''}`}
+                              onClick={(e) => { e.stopPropagation(); setShowSpotifyPlayer(!showSpotifyPlayer); }}
+                              title="Alternar Reproductor Spotify"
                             >
-                              <Volume2 size={36} className="teal-text" />
-                              <span className="bpm-number">{activeBeat.bpm}</span>
-                              <span className="bpm-label">BPM</span>
-                            </div>
-
-                            <p className="bpm-help-text">El altavoz pulsa al ritmo de la instrumental.</p>
-                          </div>
-
-                          <div className="beat-card-footer">
-                            <div className="qr-container-sim" onClick={(e) => { e.stopPropagation(); openSpotify(activeBeat); }}>
-                              <QrCode size={48} className="pink-text" />
-                              <span className="qr-scan-label">CLICK PARA ABRIR</span>
-                            </div>
-
-                            <button className="btn-spotify-link" onClick={(e) => { e.stopPropagation(); openSpotify(activeBeat); }}>
-                              <Play size={14} fill="currentColor" />
-                              ABRIR EN SPOTIFY
+                              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.49 17.31c-.22.36-.68.48-1.04.26-2.91-1.78-6.58-2.18-10.9-1.2-.42.09-.83-.17-.92-.59-.09-.41.17-.83.59-.92 4.73-1.08 8.78-.62 12.01 1.36.36.21.48.67.26 1.09zm1.46-3.26c-.28.45-.87.6-1.32.32-3.33-2.05-8.41-2.65-12.35-1.45-.51.15-1.04-.14-1.2-.66-.15-.51.14-1.04.66-1.2 4.51-1.37 10.12-.7 13.9 1.63.45.27.6.86.31 1.36zm.1-3.38C15.2 8.35 8.86 8.14 5.17 9.26c-.57.17-1.16-.16-1.33-.73-.17-.57.16-1.16.73-1.33 4.23-1.28 11.23-1.04 15.67 1.59.51.3 1.17.47 1.47-.04.3-.51.13-1.17-.38-1.47z"/>
+                              </svg>
                             </button>
                           </div>
+
+                          {showSpotifyPlayer ? (
+                            <div className="spotify-card-overlay fade-in">
+                              <div className="spotify-overlay-header">
+                                <div className="spotify-api-badge">
+                                  <span className={`pulse-dot ${spotifyPlaying ? 'pulsing' : ''}`}></span>
+                                  <span>SPOTIFY PREMIUM API</span>
+                                </div>
+                                <span className="spotify-stream-indicator">
+                                  {isSpotifyLinked ? '✓ Cuenta Vinculada' : '⚠ Cuenta No Vinculada'}
+                                </span>
+                              </div>
+
+                              <div className="spotify-overlay-body">
+                                <div className={`spotify-vinyl-container ${spotifyPlaying ? 'spinning' : ''}`}>
+                                  <div className="spotify-vinyl-disc">
+                                    <div className="spotify-vinyl-center"></div>
+                                  </div>
+                                </div>
+
+                                <h3 className="spotify-overlay-title">{activeBeat.name}</h3>
+                                <span className="spotify-overlay-artist font-base">BARRZ PRODUCER</span>
+                              </div>
+
+                              <div className="spotify-overlay-footer">
+                                <div className="spotify-progress-container">
+                                  <span className="spotify-time font-base">
+                                    {Math.floor(spotifyProgress / 60)}:{(spotifyProgress % 60).toString().padStart(2, '0')}
+                                  </span>
+                                  <div className="spotify-progress-bar-wrap">
+                                    <div 
+                                      className="spotify-progress-bar-fill" 
+                                      style={{ width: `${(spotifyProgress / 90) * 100}%` }}
+                                    ></div>
+                                  </div>
+                                  <span className="spotify-time font-base">1:30</span>
+                                </div>
+
+                                <div className="spotify-controls">
+                                  <button type="button" className="spotify-btn-sub" title="Aleatorio">
+                                    <span style={{ fontSize: '1rem', color: '#1DB954' }}>⇄</span>
+                                  </button>
+                                  <button type="button" className="spotify-btn-sub" title="Anterior">
+                                    <span style={{ fontSize: '1.2rem', verticalAlign: 'middle' }}>⏮</span>
+                                  </button>
+                                  <button 
+                                    type="button" 
+                                    className={`spotify-btn-play-pause ${spotifyPlaying ? 'playing' : ''}`}
+                                    onClick={(e) => { e.stopPropagation(); setSpotifyPlaying(!spotifyPlaying); }}
+                                    title={spotifyPlaying ? 'Pausar' : 'Reproducir'}
+                                  >
+                                    {spotifyPlaying ? '⏸' : '▶'}
+                                  </button>
+                                  <button type="button" className="spotify-btn-sub" title="Siguiente">
+                                    <span style={{ fontSize: '1.2rem', verticalAlign: 'middle' }}>⏭</span>
+                                  </button>
+                                  <button type="button" className="spotify-btn-sub" title="Repetir">
+                                    <span style={{ fontSize: '1rem' }}>↻</span>
+                                  </button>
+                                </div>
+
+                                <div className="spotify-monetization-msg">
+                                  {isSpotifyLinked ? (
+                                    <span className="monetized font-base">✓ Monetizando rimas (Streaming activo)</span>
+                                  ) : (
+                                    <span className="not-monetized font-base">⚠ Conectá Spotify para sumar reproducciones</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="beat-card-body">
+                                <h3 className="beat-title">{activeBeat.name}</h3>
+
+                                <div
+                                  className={`bpm-indicator ${isMetronomeOn ? 'pulsing' : ''}`}
+                                  style={{
+                                    animationDuration: `${bpmPulseDuration}s`,
+                                    borderColor: 'var(--neon-teal)'
+                                  }}
+                                  onClick={(e) => { e.stopPropagation(); setIsMetronomeOn(!isMetronomeOn); }}
+                                >
+                                  <Volume2 size={36} className="teal-text" />
+                                  <span className="bpm-number">{activeBeat.bpm}</span>
+                                  <span className="bpm-label">BPM</span>
+                                </div>
+
+                                <p className="bpm-help-text">El altavoz pulsa al ritmo de la instrumental.</p>
+                              </div>
+
+                              <div className="beat-card-footer">
+                                <div className="qr-container-sim" onClick={(e) => { e.stopPropagation(); openSpotify(activeBeat); }}>
+                                  <QrCode size={48} className="pink-text" />
+                                  <span className="qr-scan-label">CLICK PARA ABRIR</span>
+                                </div>
+
+                                <button className="btn-spotify-link" onClick={(e) => { e.stopPropagation(); openSpotify(activeBeat); }}>
+                                  <Play size={14} fill="currentColor" />
+                                  ABRIR EN SPOTIFY
+                                </button>
+                              </div>
+                            </>
+                          )}
 
                           <button className="btn-card-redraw" onClick={(e) => { e.stopPropagation(); drawBeat(400); }}>
                             <RefreshCw size={12} /> Cambiar Beat

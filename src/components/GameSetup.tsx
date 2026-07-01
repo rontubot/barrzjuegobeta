@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Sliders, Play, Plus, Minus, UserPlus, Check, RefreshCw, Volume2, Sparkles, BookOpen, Compass, Radio } from 'lucide-react';
+import { Users, Sliders, Play, Plus, Minus, UserPlus, Check, RefreshCw, Volume2, Sparkles, BookOpen, Compass, Radio, ArrowRight } from 'lucide-react';
 import './GameSetup.css';
 
 interface GameSetupProps {
-  step: 'lobby_start' | 'tutorial_ask' | 'mode_selection' | 'setup_players' | 'setup_rounds' | 'setup_deck';
+  step: 'lobby_start' | 'tutorial_ask' | 'link_spotify' | 'mode_selection' | 'setup_players' | 'setup_rounds' | 'setup_deck';
   userSession: any;
   onNext: (nextStep: string, data?: any) => void;
   onBack: () => void;
@@ -31,6 +31,19 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
   // Tutorial interactivo
   const [showTutorialSlides, setShowTutorialSlides] = useState(false);
   const [tutorialSlide, setTutorialSlide] = useState(0);
+
+  // Vinculación de Spotify
+  const [isSpotifyLinked, setIsSpotifyLinked] = useState(() => localStorage.getItem('barrz_spotify_linked') === 'true');
+
+  const handleSpotifyToggle = () => {
+    const nextVal = !isSpotifyLinked;
+    setIsSpotifyLinked(nextVal);
+    localStorage.setItem('barrz_spotify_linked', String(nextVal));
+  };
+
+  useEffect(() => {
+    setIsSpotifyLinked(localStorage.getItem('barrz_spotify_linked') === 'true');
+  }, [step]);
 
   // Categorías de cartas disponibles
   const categoriesList = [
@@ -196,7 +209,7 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
                 <button className="btn-neon-teal" onClick={() => setShowTutorialSlides(true)}>
                   SÍ, VER TUTORIAL
                 </button>
-                <button className="btn-neon-pink" onClick={() => onNext('mode_selection')}>
+                <button className="btn-neon-pink" onClick={() => onNext('link_spotify')}>
                   NO, SALTEAR
                 </button>
               </div>
@@ -236,7 +249,7 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
                     onClick={() => {
                       setShowTutorialSlides(false);
                       setTutorialSlide(0);
-                      onNext('mode_selection');
+                      onNext('link_spotify');
                     }}
                   >
                     Entendido, Jugar
@@ -245,6 +258,42 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── LINK SPOTIFY ───────────────────────────────────────────────── */}
+      {step === 'link_spotify' && (
+        <div className="setup-card glass-panel glow-teal text-center fade-in">
+          <div className="illustration-wrapper">
+            <div className="spotify-setup-logo-container pulse-teal-anim">
+              <svg className="spotify-setup-icon" viewBox="0 0 24 24" width="56" height="56" fill="#1DB954">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.49 17.31c-.22.36-.68.48-1.04.26-2.91-1.78-6.58-2.18-10.9-1.2-.42.09-.83-.17-.92-.59-.09-.41.17-.83.59-.92 4.73-1.08 8.78-.62 12.01 1.36.36.21.48.67.26 1.09zm1.46-3.26c-.28.45-.87.6-1.32.32-3.33-2.05-8.41-2.65-12.35-1.45-.51.15-1.04-.14-1.2-.66-.15-.51.14-1.04.66-1.2 4.51-1.37 10.12-.7 13.9 1.63.45.27.6.86.31 1.36zm.1-3.38C15.2 8.35 8.86 8.14 5.17 9.26c-.57.17-1.16-.16-1.33-.73-.17-.57.16-1.16.73-1.33 4.23-1.28 11.23-1.04 15.67 1.59.51.3 1.17.47 1.47-.04.3-.51.13-1.17-.38-1.47z"/>
+              </svg>
+            </div>
+          </div>
+          
+          <h2 className="font-graffiti text-glow-teal mt-10">VINCULAR SPOTIFY</h2>
+          <p className="step-description">
+            Vinculá tu cuenta de Spotify Premium para que cada rima sume reproducciones reales a los beatmakers de las instrumentales. ¡Es el motor del cypher!
+          </p>
+
+          <div className="spotify-link-action-box">
+            <button 
+              type="button" 
+              className={`btn-spotify-link-setup ${isSpotifyLinked ? 'linked' : ''}`}
+              onClick={handleSpotifyToggle}
+            >
+              {isSpotifyLinked ? '✓ CUENTA VINCULADA' : 'CONECTAR CON SPOTIFY'}
+            </button>
+            {isSpotifyLinked && (
+              <span className="spotify-user-meta font-base">Conectado como: <strong>BarrzUser_99</strong></span>
+            )}
+          </div>
+
+          <button className="btn-neon-pink w-100 mt-20" onClick={() => onNext('mode_selection')}>
+            <span>CONTINUAR A MODOS</span>
+            <ArrowRight size={18} />
+          </button>
         </div>
       )}
 
