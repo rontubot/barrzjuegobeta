@@ -59,6 +59,8 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
   // Estados de sub-pantallas del juego: 'ready' | 'playing' | 'scoring' | 'replica_announcement' | 'game_over'
   const [subState, setSubState] = useState<'ready' | 'playing' | 'scoring' | 'replica_announcement' | 'game_over'>('ready');
   const [selectedRating, setSelectedRating] = useState<number>(3); // Estrellas por defecto: 3
+  const [currentVoterIndex, setCurrentVoterIndex] = useState<number>(0);
+  const [votesReceived, setVotesReceived] = useState<Record<string, number>>({});
 
   // Estados para Réplicas (Desempate)
   const [isReplicaActive, setIsReplicaActive] = useState(false);
@@ -68,8 +70,6 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
   const [activeBeat, setActiveBeat] = useState<BeatCard | null>(null);
   const [activeChallenge, setActiveChallenge] = useState<ChallengeCard | null>(null);
   const [activeCardType, setActiveCardType] = useState<'challenge' | 'beat'>('challenge');
-  const [hasViewedChallenge, setHasViewedChallenge] = useState(false);
-  const [hasViewedBeat, setHasViewedBeat] = useState(false);
   const [replicaTheme, setReplicaTheme] = useState<{ title: string; desc: string; highlight: string } | null>(null);
 
   // Estados de animación de cartas
@@ -99,6 +99,8 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
   // Lista de competidores activos en la ronda actual (en réplica solo participan los empatados)
   const activeRoundPlayers = isReplicaActive ? replicaPlayers : playerNames;
   const activePlayer = activeRoundPlayers[currentPlayerIndex] || activeRoundPlayers[0];
+  const votingPlayers = playerNames.filter(name => name !== activePlayer);
+  const currentVoter = votingPlayers[currentVoterIndex] || 'Votante';
 
   // Establecer el índice del jugador inicial al comenzar (solo en ronda 1 normal)
   useEffect(() => {
@@ -143,16 +145,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
     setWordsRotated(false);
   }, [activeChallenge]);
 
-  // Registrar las cartas vistas en el turno actual
-  useEffect(() => {
-    if (subState === 'playing') {
-      if (activeCardType === 'challenge') {
-        setHasViewedChallenge(true);
-      } else if (activeCardType === 'beat') {
-        setHasViewedBeat(true);
-      }
-    }
-  }, [activeCardType, subState]);
+
 
   // Volver al menú
   const triggerExitToMenu = () => {
@@ -187,18 +180,34 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
       advanceTurn(scores);
     } else {
       setSelectedRating(3); // Restablecer estrellas a 3
+      setCurrentVoterIndex(0);
+      setVotesReceived({});
       setSubState('scoring');
     }
   };
 
-  // Registrar estrellas y avanzar turno
-  const handleSaveScore = () => {
-    const newScores = {
-      ...scores,
-      [activePlayer]: scores[activePlayer] + selectedRating
+  // Registrar voto de un jugador y avanzar cuando voten todos
+  const handleVoteSubmit = () => {
+    const nextVotes = {
+      ...votesReceived,
+      [currentVoter]: selectedRating
     };
-    setScores(newScores);
-    advanceTurn(newScores);
+    setVotesReceived(nextVotes);
+
+    if (currentVoterIndex < votingPlayers.length - 1) {
+      // Avanzar al siguiente votante
+      setCurrentVoterIndex(prev => prev + 1);
+      setSelectedRating(3); // Reset de selección a 3 por defecto
+    } else {
+      // Todos los votantes terminaron, sumamos y guardamos
+      const totalTurnScore = Object.values(nextVotes).reduce((sum, val) => sum + val, 0);
+      const newScores = {
+        ...scores,
+        [activePlayer]: scores[activePlayer] + totalTurnScore
+      };
+      setScores(newScores);
+      advanceTurn(newScores);
+    }
   };
 
   // Avanzar turno, evaluar empates / réplicas o finalizar
@@ -207,8 +216,6 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
     setChallengeFlipped(false);
     setActiveBeat(null);
     setActiveChallenge(null);
-    setHasViewedChallenge(false);
-    setHasViewedBeat(false);
 
     // Comprobar si era el último jugador de la lista activa en esta ronda
     if (currentPlayerIndex === activeRoundPlayers.length - 1) {
@@ -260,12 +267,9 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
     }
   };
 
-  // Comenzar el turno (ocultar ready screen y cargar cartas)
   const handleStartTurn = () => {
     setSubState('playing');
     setActiveCardType('challenge'); // Desafío al frente por defecto
-    setHasViewedChallenge(true); // Se inicia viendo el desafío
-    setHasViewedBeat(false); // Aún no vio el beat
     drawBeat(1000); // 1.0s delay for turn intro flip
     drawChallenge(1000); // 1.0s delay for turn intro flip
   };
@@ -295,8 +299,6 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
     setTimerSeconds(90);
     setBeatFlipped(false);
     setChallengeFlipped(false);
-    setHasViewedChallenge(false);
-    setHasViewedBeat(false);
     setSubState('ready');
   };
 
@@ -649,12 +651,12 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
             {/* Acciones de Footer */}
             <div className="game-footer-actions">
               <button
-                className={`btn-next-turn ${(hasViewedChallenge && hasViewedBeat) ? 'pulse-pink-anim' : ''}`}
+                className={`btn-next-turn ${(activeChallenge && activeBeat) ? 'pulse-pink-anim' : ''}`}
                 onClick={handleFinishImprovisation}
-                disabled={!hasViewedChallenge || !hasViewedBeat}
+                disabled={!activeChallenge || !activeBeat}
               >
                 <span>
-                  {(!hasViewedChallenge || !hasViewedBeat) 
+                  {(!activeChallenge || !activeBeat) 
                     ? 'Revisá ambas cartas' 
                     : (mode === 'solo' ? 'Siguiente Turno' : 'Terminar Turno')
                   }
@@ -672,16 +674,21 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
               <Award size={48} className="pink-text" />
             </div>
 
-            <span className="scoring-tag">FIN DE LA IMPROVISACIÓN</span>
-            <h2 className="scoring-title font-graffiti">¿CÓMO LO HIZO?</h2>
+            <span className="scoring-tag">VOTACIÓN DE JUGADORES</span>
+            <h2 className="scoring-title font-graffiti">TURNO DE VOTAR</h2>
+
+            <div className="voter-badge-container">
+              <span className="voter-label font-base">Le toca votar a:</span>
+              <div className="voter-name-badge pulse-teal-anim">{currentVoter}</div>
+            </div>
             
             <p className="scoring-player-prompt">
-              Evalúen el desempeño de <strong className="teal-text">{activePlayer}</strong> en base a su flow, métricas y cumplimiento de palabras clave:
+              Puntúa la improvisación de <strong className="teal-text">{activePlayer}</strong> (del 1 al 4):
             </p>
 
-            {/* Estrellas interactivas */}
+            {/* Estrellas interactivas 1-4 */}
             <div className="stars-rating-container">
-              {[1, 2, 3, 4, 5].map((star) => (
+              {[1, 2, 3, 4].map((star) => (
                 <button
                   key={star}
                   type="button"
@@ -695,14 +702,18 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
 
             <div className="rating-desc-pill">
               {selectedRating === 1 && '👎 Flojo - Falta práctica'}
-              {selectedRating === 2 && '😕 Regular - Se trabó un poco'}
-              {selectedRating === 3 && '😐 Bueno - Cumplió el patrón'}
-              {selectedRating === 4 && '🔥 Muy Bueno - Buenas métricas'}
-              {selectedRating === 5 && '👑 Leyenda - ¡Rima épica en el cypher!'}
+              {selectedRating === 2 && '😐 Regular - Se trabó un poco'}
+              {selectedRating === 3 && '🔥 Bueno - Buenas métricas'}
+              {selectedRating === 4 && '👑 Excelente - ¡Rima épica!'}
             </div>
 
-            <button className="btn-neon-pink w-100 mt-20 pulse-pink-anim" onClick={handleSaveScore}>
-              <span>GUARDAR PUNTOS ({selectedRating} pts)</span>
+            <button className="btn-neon-pink w-100 mt-20 pulse-pink-anim" onClick={handleVoteSubmit}>
+              <span>
+                {currentVoterIndex < votingPlayers.length - 1 
+                  ? `GUARDAR VOTO (${selectedRating} pts)` 
+                  : `FINALIZAR VOTACIÓN (+${Object.values(votesReceived).reduce((a,b)=>a+b, 0) + selectedRating} pts)`
+                }
+              </span>
             </button>
           </div>
         )}

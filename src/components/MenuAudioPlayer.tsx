@@ -103,8 +103,8 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
 
       const targetVol = isMuted ? 0 : volume;
       let curVol = 0;
-      const steps = 15;
-      const stepTime = 25; // 375ms total
+      const steps = 24; // Aumentado para 600ms total
+      const stepTime = 25; 
       const volDelta = targetVol / steps;
 
       fadeIntervalRef.current = setInterval(() => {
@@ -252,8 +252,8 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
     // --- FADE OUT DE LA CANCIÓN ACTUAL ---
     const startVol = audioRef.current.volume;
     let curVol = startVol;
-    const steps = 12;
-    const stepTime = 25; // 300ms fade-out para agilizar el cambio
+    const steps = 20; // Aumentado para 500ms total
+    const stepTime = 25; 
     const volDelta = startVol / steps;
 
     fadeIntervalRef.current = setInterval(() => {
@@ -310,10 +310,11 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
 
     if (isPlaying) {
       // --- FADE OUT AL PAUSAR ---
+      setIsPlaying(false); // Respuesta visual instantánea al pausar
       const startVol = audioRef.current.volume;
       let curVol = startVol;
-      const steps = 15;
-      const stepTime = 25; // 375ms en total para un fade suave de pausa
+      const steps = 24; // Aumentado para 600ms total
+      const stepTime = 25; 
       const volDelta = startVol / steps;
 
       fadeIntervalRef.current = setInterval(() => {
@@ -328,20 +329,19 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
           if (audioRef.current) {
             audioRef.current.pause();
           }
-          setIsPlaying(false);
         }
       }, stepTime);
     } else {
       // --- FADE IN AL REPRODUCIR ---
       audioRef.current.volume = 0;
       audioRef.current.play().catch(e => console.log(e));
-      setIsPlaying(true);
+      setIsPlaying(true); // Respuesta visual instantánea al reproducir
       triggerBanner(); // Al darle play, volvemos a mostrar qué está sonando
 
       const targetVol = isMuted ? 0 : volume;
       let curVol = 0;
-      const steps = 15;
-      const stepTime = 25; // 375ms en total para un fade suave de reproducción
+      const steps = 24; // Aumentado para 600ms total
+      const stepTime = 25; 
       const volDelta = targetVol / steps;
 
       fadeIntervalRef.current = setInterval(() => {
@@ -437,7 +437,6 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
               className="music-ctrl-btn" 
               onClick={playPrevRandom}
               title="Pista anterior"
-              disabled={isGame}
             >
               <SkipBack size={18} fill="currentColor" />
             </button>
@@ -448,7 +447,6 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
               className="music-ctrl-btn play-pause" 
               onClick={togglePlayPause}
               title={isPlaying ? 'Pausar' : 'Reproducir'}
-              disabled={isGame}
             >
               {isPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" />}
             </button>
@@ -459,7 +457,6 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
               className="music-ctrl-btn" 
               onClick={playNextRandom}
               title="Siguiente pista"
-              disabled={isGame}
             >
               <SkipForward size={18} fill="currentColor" />
             </button>
@@ -472,7 +469,6 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
               className="btn-mute-toggle" 
               onClick={toggleMute}
               title={isMuted ? 'Desmutear' : 'Mutear'}
-              disabled={isGame}
             >
               {isMuted || volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
             </button>
@@ -486,9 +482,8 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
               value={isMuted ? 0 : volume}
               onChange={handleVolumeChange}
               title="Ajustar volumen"
-              disabled={isGame}
               style={{
-                background: `linear-gradient(to right, var(--neon-pink) 0%, var(--neon-pink) ${volumePercentage}%, rgba(255, 255, 255, 0.15) ${volumePercentage}%, rgba(255, 255, 255, 0.15) 100%)`
+                background: `linear-gradient(to right, var(--neon-teal) 0%, var(--neon-pink) ${volumePercentage}%, rgba(255, 255, 255, 0.15) ${volumePercentage}%, rgba(255, 255, 255, 0.15) 100%)`
               }}
             />
           </div>
@@ -504,7 +499,6 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
             }
           }}
           title="Configuración de Música"
-          disabled={isGame}
         >
           {isPlaying && !isGame && !isMuted && volume > 0 ? (
             <Music size={20} className="pulse-music" />

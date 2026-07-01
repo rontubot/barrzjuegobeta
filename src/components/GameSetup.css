@@ -253,9 +253,16 @@
   border-color: var(--text-muted);
 }
 
-.mode-option-card.glow-teal:hover {
-  border-color: var(--neon-teal);
-  box-shadow: 0 0 15px rgba(0, 245, 171, 0.1);
+.mode-option-card:focus,
+.mode-option-card:focus-visible {
+  outline: none;
+  border-color: var(--neon-pink);
+  box-shadow: 0 0 15px rgba(255, 0, 127, 0.25);
+}
+
+.mode-option-card.glow-pink:hover {
+  border-color: var(--neon-pink);
+  box-shadow: 0 0 15px rgba(255, 0, 127, 0.25);
 }
 
 .mode-option-header {
