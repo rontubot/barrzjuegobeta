@@ -4,6 +4,7 @@ import { OnboardingAuth } from './components/OnboardingAuth';
 import { GameSetup } from './components/GameSetup';
 import { Game } from './components/Game';
 import { MenuAudioPlayer } from './components/MenuAudioPlayer';
+import { UserProfilePanel } from './components/UserProfilePanel';
 import './App.css';
 
 type GameState =
@@ -254,6 +255,7 @@ function App() {
     <div className="app-root">
       {mainContent}
       <MenuAudioPlayer gameState={gameState} />
+      <UserProfilePanel gameState={gameState} userSession={userSession} />
     </div>
   );
 }

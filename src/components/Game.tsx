@@ -66,6 +66,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
   const [spotifyPlaying, setSpotifyPlaying] = useState(false);
   const [spotifyProgress, setSpotifyProgress] = useState(0);
   const [isSpotifyLinked, setIsSpotifyLinked] = useState(() => localStorage.getItem('barrz_spotify_linked') === 'true');
+  const [isVoterFading, setIsVoterFading] = useState(false);
 
   // Estados para Réplicas (Desempate)
   const [isReplicaActive, setIsReplicaActive] = useState(false);
@@ -218,26 +219,32 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
 
   // Registrar voto de un jugador y avanzar cuando voten todos
   const handleVoteSubmit = () => {
-    const nextVotes = {
-      ...votesReceived,
-      [currentVoter]: selectedRating
-    };
-    setVotesReceived(nextVotes);
-
-    if (currentVoterIndex < votingPlayers.length - 1) {
-      // Avanzar al siguiente votante
-      setCurrentVoterIndex(prev => prev + 1);
-      setSelectedRating(3); // Reset de selección a 3 por defecto
-    } else {
-      // Todos los votantes terminaron, sumamos y guardamos
-      const totalTurnScore = Object.values(nextVotes).reduce((sum, val) => sum + val, 0);
-      const newScores = {
-        ...scores,
-        [activePlayer]: scores[activePlayer] + totalTurnScore
+    setIsVoterFading(true);
+    
+    setTimeout(() => {
+      const nextVotes = {
+        ...votesReceived,
+        [currentVoter]: selectedRating
       };
-      setScores(newScores);
-      advanceTurn(newScores);
-    }
+      setVotesReceived(nextVotes);
+
+      if (currentVoterIndex < votingPlayers.length - 1) {
+        // Avanzar al siguiente votante
+        setCurrentVoterIndex(prev => prev + 1);
+        setSelectedRating(3); // Reset de selección a 3 por defecto
+        setIsVoterFading(false);
+      } else {
+        // Todos los votantes terminaron, sumamos y guardamos
+        const totalTurnScore = Object.values(nextVotes).reduce((sum, val) => sum + val, 0);
+        const newScores = {
+          ...scores,
+          [activePlayer]: scores[activePlayer] + totalTurnScore
+        };
+        setScores(newScores);
+        advanceTurn(newScores);
+        setIsVoterFading(false);
+      }
+    }, 250); // 250ms fade-out transition
   };
 
   // Avanzar turno, evaluar empates / réplicas o finalizar
@@ -790,34 +797,36 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
             <span className="scoring-tag">VOTACIÓN DE JUGADORES</span>
             <h2 className="scoring-title font-graffiti">TURNO DE VOTAR</h2>
 
-            <div className="voter-badge-container">
-              <span className="voter-label font-base">Le toca votar a:</span>
-              <div className="voter-name-badge pulse-teal-anim">{currentVoter}</div>
-            </div>
-            
-            <p className="scoring-player-prompt">
-              Puntúa la improvisación de <strong className="teal-text">{activePlayer}</strong> (del 1 al 4):
-            </p>
+            <div className={`voter-scoring-transition-wrapper ${isVoterFading ? 'fading-out' : 'fading-in'}`}>
+              <div className="voter-badge-container">
+                <span className="voter-label font-base">Le toca votar a:</span>
+                <div className="voter-name-badge pulse-teal-anim">{currentVoter}</div>
+              </div>
+              
+              <p className="scoring-player-prompt">
+                Puntúa la improvisación de <strong className="teal-text">{activePlayer}</strong> (del 1 al 4):
+              </p>
 
-            {/* Estrellas interactivas 1-4 */}
-            <div className="stars-rating-container">
-              {[1, 2, 3, 4].map((star) => (
-                <button
-                  key={star}
-                  type="button"
-                  className={`star-btn ${star <= selectedRating ? 'active' : ''}`}
-                  onClick={() => setSelectedRating(star)}
-                >
-                  <Star size={36} fill={star <= selectedRating ? 'var(--neon-pink)' : 'none'} />
-                </button>
-              ))}
-            </div>
+              {/* Estrellas interactivas 1-4 */}
+              <div className="stars-rating-container">
+                {[1, 2, 3, 4].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    className={`star-btn ${star <= selectedRating ? 'active' : ''}`}
+                    onClick={() => setSelectedRating(star)}
+                  >
+                    <Star size={36} fill={star <= selectedRating ? 'var(--neon-pink)' : 'none'} />
+                  </button>
+                ))}
+              </div>
 
-            <div className="rating-desc-pill">
-              {selectedRating === 1 && '👎 Flojo - Falta práctica'}
-              {selectedRating === 2 && '😐 Regular - Se trabó un poco'}
-              {selectedRating === 3 && '🔥 Bueno - Buenas métricas'}
-              {selectedRating === 4 && '👑 Excelente - ¡Rima épica!'}
+              <div className="rating-desc-pill">
+                {selectedRating === 1 && '👎 Flojo - Falta práctica'}
+                {selectedRating === 2 && '😐 Regular - Se trabó un poco'}
+                {selectedRating === 3 && '🔥 Bueno - Buenas métricas'}
+                {selectedRating === 4 && '👑 Excelente - ¡Rima épica!'}
+              </div>
             </div>
 
             <button className="btn-neon-pink w-100 mt-20 pulse-pink-anim" onClick={handleVoteSubmit}>
