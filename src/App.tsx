@@ -211,6 +211,7 @@ function App() {
   else if (
     gameState === 'lobby_start' ||
     gameState === 'tutorial_ask' ||
+    gameState === 'link_spotify' ||
     gameState === 'mode_selection' ||
     gameState === 'setup_players' ||
     gameState === 'setup_rounds' ||
