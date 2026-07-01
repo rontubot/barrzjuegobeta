@@ -1736,3 +1736,34 @@
   }
 }
 
+/* Estilos para iconos de usuario dentro de los pilares de podio */
+.podium-pillar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.podium-pillar-icon {
+  color: rgba(255, 255, 255, 0.2);
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.05));
+  animation: floatPillarIcon 4s infinite ease-in-out;
+}
+
+.podium-pillar-icon.first-place {
+  color: rgba(255, 0, 127, 0.3);
+  filter: drop-shadow(0 0 8px rgba(255, 0, 127, 0.2));
+}
+
+@keyframes floatPillarIcon {
+  0% {
+    transform: translateY(2px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+  100% {
+    transform: translateY(2px);
+  }
+}
+

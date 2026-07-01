@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, RefreshCw, Volume2, RotateCw, Play, Pause, Square, Music, QrCode, Sparkles, SkipForward, Star, Award, Home, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Volume2, RotateCw, Play, Pause, Square, Music, QrCode, Sparkles, User, SkipForward, Star, Award, Home, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { BEATS_DECK, CHALLENGES_DECK } from '../data/cards';
 import type { BeatCard, ChallengeCard } from '../data/cards';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -907,7 +907,9 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                     {ranksList[1].name}
                   </span>
                   <span className="podium-score">{ranksList[1].points} pts</span>
-                  <div className={`podium-pillar ${ranksList[1].rank === 1 ? 'pillar-first glow-pink' : 'pillar-second'}`}></div>
+                  <div className={`podium-pillar ${ranksList[1].rank === 1 ? 'pillar-first glow-pink' : 'pillar-second'}`}>
+                    <User size={32} className="podium-pillar-icon" />
+                  </div>
                 </div>
               )}
 
@@ -921,7 +923,9 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                     {ranksList[0].name}
                   </span>
                   <span className="podium-score">{ranksList[0].points} pts</span>
-                  <div className="podium-pillar pillar-first glow-pink"></div>
+                  <div className="podium-pillar pillar-first glow-pink">
+                    <User size={40} className="podium-pillar-icon first-place" />
+                  </div>
                 </div>
               )}
 
@@ -941,7 +945,9 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                       : ranksList[2].rank === 2 
                         ? 'pillar-second' 
                         : 'pillar-third'
-                  }`}></div>
+                  }`}>
+                    <User size={28} className="podium-pillar-icon" />
+                  </div>
                 </div>
               )}
             </div>
