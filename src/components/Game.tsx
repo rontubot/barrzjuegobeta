@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, RefreshCw, Volume2, RotateCw, Play, Pause, Square, Music, QrCode, Sparkles, User, SkipForward, Star, Award, Home, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Volume2, RotateCw, Play, Pause, Square, Music, QrCode, Sparkles, SkipForward, Star, Award, Home, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { BEATS_DECK, CHALLENGES_DECK } from '../data/cards';
 import type { BeatCard, ChallengeCard } from '../data/cards';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -21,6 +21,7 @@ interface GameProps {
   gameSettings?: {
     mode: 'solo' | 'multiplayer';
     players: string[];
+    avatars?: Record<string, string>;
     roundsCount: number;
     selectedCategories: string[];
     startingPlayer: string;
@@ -408,8 +409,8 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
               <div className="turn-label">
                 {isReplicaActive ? `RÉPLICA (RONDA ${currentRound})` : `RONDA ${currentRound} / ${mode === 'solo' ? '∞' : totalRounds}`}
               </div>
-              <div className="player-name">
-                <User size={14} className="teal-text" />
+              <div className="player-name" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>{gameSettings?.avatars?.[activePlayer] || '🎤'}</span>
                 <span>{activePlayer}</span>
               </div>
             </div>
@@ -424,7 +425,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
         {subState === 'ready' && (
           <div className="ready-screen-content glass-panel glow-teal text-center fade-in">
             <div className="ready-avatar-wrapper">
-              <div className="avatar-circle">🎙</div>
+              <div className="avatar-circle" style={{ fontSize: '3rem' }}>{gameSettings?.avatars?.[activePlayer] || '🎙'}</div>
             </div>
             
             <span className="ready-round-tag">
@@ -800,7 +801,10 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
             <div className={`voter-scoring-transition-wrapper ${isVoterFading ? 'fading-out' : 'fading-in'}`}>
               <div className="voter-badge-container">
                 <span className="voter-label font-base">Le toca votar a:</span>
-                <div className="voter-name-badge pulse-teal-anim">{currentVoter}</div>
+                <div className="voter-name-badge pulse-teal-anim" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>{gameSettings?.avatars?.[currentVoter] || '🎤'}</span>
+                  <span>{currentVoter}</span>
+                </div>
               </div>
               
               <p className="scoring-player-prompt">
@@ -898,7 +902,10 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                 <div className="podium-step step-second fade-in">
                   {ranksList[1].rank === 1 && <span className="winner-trophy">👑</span>}
                   <span className="podium-rank">{ranksList[1].rank}</span>
-                  <span className={`podium-name ${ranksList[1].rank === 1 ? 'pink-text' : ''}`}>{ranksList[1].name}</span>
+                  <span className={`podium-name ${ranksList[1].rank === 1 ? 'pink-text' : ''}`}>
+                    <span style={{ marginRight: '6px' }}>{gameSettings?.avatars?.[ranksList[1].name] || '🎤'}</span>
+                    {ranksList[1].name}
+                  </span>
                   <span className="podium-score">{ranksList[1].points} pts</span>
                   <div className={`podium-pillar ${ranksList[1].rank === 1 ? 'pillar-first glow-pink' : 'pillar-second'}`}></div>
                 </div>
@@ -909,7 +916,10 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                 <div className="podium-step step-first fade-in">
                   <span className="winner-trophy">👑</span>
                   <span className="podium-rank">{ranksList[0].rank}</span>
-                  <span className="podium-name pink-text">{ranksList[0].name}</span>
+                  <span className="podium-name pink-text">
+                    <span style={{ marginRight: '6px' }}>{gameSettings?.avatars?.[ranksList[0].name] || '🎤'}</span>
+                    {ranksList[0].name}
+                  </span>
                   <span className="podium-score">{ranksList[0].points} pts</span>
                   <div className="podium-pillar pillar-first glow-pink"></div>
                 </div>
@@ -920,7 +930,10 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                 <div className="podium-step step-third fade-in">
                   {ranksList[2].rank === 1 && <span className="winner-trophy">👑</span>}
                   <span className="podium-rank">{ranksList[2].rank}</span>
-                  <span className={`podium-name ${ranksList[2].rank === 1 ? 'pink-text' : ranksList[2].rank === 2 ? 'teal-text' : ''}`}>{ranksList[2].name}</span>
+                  <span className={`podium-name ${ranksList[2].rank === 1 ? 'pink-text' : ranksList[2].rank === 2 ? 'teal-text' : ''}`}>
+                    <span style={{ marginRight: '6px' }}>{gameSettings?.avatars?.[ranksList[2].name] || '🎤'}</span>
+                    {ranksList[2].name}
+                  </span>
                   <span className="podium-score">{ranksList[2].points} pts</span>
                   <div className={`podium-pillar ${
                     ranksList[2].rank === 1 
@@ -947,7 +960,10 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                   {ranksList.map(({ name, points, rank }) => (
                     <tr key={name} className={rank === 1 ? 'winner-row' : ''}>
                       <td>#{rank}</td>
-                      <td>{name}</td>
+                      <td>
+                        <span style={{ marginRight: '8px' }}>{gameSettings?.avatars?.[name] || '🎤'}</span>
+                        {name}
+                      </td>
                       <td><strong>{points}</strong> pts</td>
                     </tr>
                   ))}

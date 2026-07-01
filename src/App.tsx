@@ -32,6 +32,7 @@ interface UserSession {
 interface GameSettings {
   mode: 'solo' | 'multiplayer';
   players: string[];
+  avatars?: Record<string, string>;
   roundsCount: number;
   selectedCategories: string[];
   startingPlayer: string;
@@ -111,6 +112,7 @@ function App() {
         setGameSettings({
           mode: data.mode,
           players: data.players,
+          avatars: data.avatars,
           roundsCount: data.roundsCount,
           selectedCategories: data.selectedCategories,
           startingPlayer: data.startingPlayer || data.players[0]

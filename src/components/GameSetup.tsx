@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Sliders, Play, Plus, Minus, UserPlus, Check, RefreshCw, Volume2, Sparkles, BookOpen, Compass, Radio, ArrowRight } from 'lucide-react';
+import { Users, Play, Plus, Minus, UserPlus, Check, RefreshCw, Volume2, Sparkles, BookOpen, Compass, Radio, ArrowRight } from 'lucide-react';
 import './GameSetup.css';
 
 interface GameSetupProps {
@@ -10,8 +10,12 @@ interface GameSetupProps {
 }
 
 export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext, onBack }) => {
+  const avatars = ['🎤', '🔥', '🎧', '👑', '👽', '⚡', '🎸', '🚀', '💀', '💥', '🛹', '🕶️'];
+  
   // Configuración de juego
   const [players, setPlayers] = useState<string[]>(['Freestyler A', 'Freestyler B']);
+  const [playerAvatars, setPlayerAvatars] = useState<string[]>(['🎤', '🔥']);
+  const [activeAvatarPicker, setActiveAvatarPicker] = useState<number | null>(null);
   const [roundsCount, setRoundsCount] = useState(5);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([
     'palabras',
@@ -72,6 +76,8 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
   const addPlayerField = () => {
     if (players.length >= 8) return;
     setPlayers([...players, `Freestyler ${String.fromCharCode(65 + players.length)}`]);
+    const nextAvatar = avatars[players.length % avatars.length];
+    setPlayerAvatars([...playerAvatars, nextAvatar]);
   };
 
   const removePlayerField = (index: number) => {
@@ -79,6 +85,7 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
     const oldName = players[index];
     const newPlayers = players.filter((_, i) => i !== index);
     setPlayers(newPlayers);
+    setPlayerAvatars(playerAvatars.filter((_, i) => i !== index));
 
     // Si eliminamos al jugador que empezaba, resetear el empezador
     if (startingPlayer === oldName) {
@@ -321,35 +328,34 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
                 onNext('game', {
                   mode: 'solo',
                   players: ['Mi Práctica'],
-                  roundsCount: 99,
-                  selectedCategories: ['palabras', 'tematicas', 'terminaciones', 'beatbox']
+                  avatars: { 'Mi Práctica': '🎤' },
+                  roundsCount: 3,
+                  selectedCategories: ['palabras', 'tematicas', 'terminaciones']
                 });
               }}
             >
               <div className="mode-option-header">
-                <Sparkles size={20} className="pink-text" />
-                <h3>Solo Práctica</h3>
+                <h3>MODO INDIVIDUAL</h3>
               </div>
-              <p>Entrenamiento individual sin registrar puntos. Ideal para pulir métricas y practicar terminaciones contra reloj.</p>
+              <p>Entrená en solitario con bases y desafíos aleatorios para perfeccionar tus patrones.</p>
             </button>
 
             <button 
-              className="mode-option-card"
+              className="mode-option-card glow-pink"
               onClick={() => {
                 onNext('game', {
                   mode: 'multiplayer',
                   players: ['Competidor 1', 'Competidor 2'],
-                  roundsCount: 3,
-                  selectedCategories: ['palabras', 'tematicas', 'terminaciones', 'beatbox', '1v1', 'sacrificio'],
-                  startingPlayer: 'Competidor 1'
+                  avatars: { 'Competidor 1': '🎤', 'Competidor 2': '🔥' },
+                  roundsCount: 4,
+                  selectedCategories: ['palabras', 'tematicas', '1v1']
                 });
               }}
             >
               <div className="mode-option-header">
-                <Sliders size={20} className="pink-text" />
-                <h3>Rápido Configurado</h3>
+                <h3>DUELO RÁPIDO (1v1)</h3>
               </div>
-              <p>Saltea todo el menú. Inicia una batalla rápida de 2 jugadores a 3 rondas con todos los mazos habilitados.</p>
+              <p>Iniciá un cara a cara de 2 jugadores de forma rápida con configuración estándar de combate.</p>
             </button>
           </div>
         </div>
@@ -363,23 +369,55 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
 
           <div className="players-list-inputs scrollable-container">
             {players.map((playerName, index) => (
-              <div key={index} className="player-input-row fade-in">
-                <span className="player-number-label">#{index + 1}</span>
-                <input
-                  type="text"
-                  value={playerName}
-                  maxLength={15}
-                  onChange={(e) => handlePlayerNameChange(index, e.target.value)}
-                  placeholder={`Jugador ${index + 1}`}
-                  className="player-name-field"
-                />
-                <button 
-                  className="btn-remove-player"
-                  onClick={() => removePlayerField(index)}
-                  disabled={players.length <= 2}
-                >
-                  <Minus size={16} />
-                </button>
+              <div key={index} className="player-input-row-container">
+                <div className="player-input-row fade-in">
+                  <span className="player-number-label">#{index + 1}</span>
+                  
+                  <button
+                    type="button"
+                    className="player-avatar-btn"
+                    onClick={() => setActiveAvatarPicker(activeAvatarPicker === index ? null : index)}
+                    title="Elegir Avatar"
+                  >
+                    {playerAvatars[index] || '🎤'}
+                  </button>
+
+                  <input
+                    type="text"
+                    value={playerName}
+                    maxLength={15}
+                    onChange={(e) => handlePlayerNameChange(index, e.target.value)}
+                    placeholder={`Jugador ${index + 1}`}
+                    className="player-name-field"
+                  />
+                  <button 
+                    className="btn-remove-player"
+                    onClick={() => removePlayerField(index)}
+                    disabled={players.length <= 2}
+                  >
+                    <Minus size={16} />
+                  </button>
+                </div>
+
+                {activeAvatarPicker === index && (
+                  <div className="player-avatar-picker-dropdown fade-in">
+                    {avatars.map((av) => (
+                      <button
+                        key={av}
+                        type="button"
+                        className={`picker-avatar-item ${playerAvatars[index] === av ? 'selected' : ''}`}
+                        onClick={() => {
+                          const nextAvatars = [...playerAvatars];
+                          nextAvatars[index] = av;
+                          setPlayerAvatars(nextAvatars);
+                          setActiveAvatarPicker(null);
+                        }}
+                      >
+                        {av}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -499,9 +537,17 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
             className="btn-neon-pink w-100 mt-20 pulse-pink-anim"
             onClick={() => {
               const finalStartingPlayer = players.includes(startingPlayer) ? startingPlayer : players[0];
+              
+              // Construir mapeo de jugador -> avatar emoji
+              const avatarsMap: Record<string, string> = {};
+              players.forEach((name, idx) => {
+                avatarsMap[name] = playerAvatars[idx] || '🎤';
+              });
+
               onNext('game', {
                 mode: 'multiplayer',
                 players,
+                avatars: avatarsMap,
                 roundsCount,
                 selectedCategories,
                 startingPlayer: finalStartingPlayer
