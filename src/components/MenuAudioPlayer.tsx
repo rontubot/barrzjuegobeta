@@ -24,6 +24,10 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
     Math.floor(Math.random() * SOUNDTRACKS.length)
   );
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
+  const isPlayingRef = useRef(isPlaying);
+  useEffect(() => {
+    isPlayingRef.current = isPlaying;
+  }, [isPlaying]);
   const [volume, setVolume] = useState<number>(0.5); // Volumen por defecto: 50%
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [showBanner, setShowBanner] = useState<boolean>(false);
@@ -167,7 +171,7 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
       
       // Listener para desbloquear audio tras la primera interacción
       const unlockAudio = () => {
-        if (audioRef.current && isPlaying && gameState !== 'game') {
+        if (audioRef.current && isPlayingRef.current && gameState !== 'game') {
           attemptPlayWithFadeIn();
         }
         window.removeEventListener('click', unlockAudio);

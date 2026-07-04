@@ -31,6 +31,7 @@ interface UserSession {
 
 interface GameSettings {
   mode: 'solo' | 'multiplayer';
+  subMode?: 'random' | 'custom';
   players: string[];
   avatars?: Record<string, string>;
   roundsCount: number;
@@ -111,6 +112,7 @@ function App() {
       if (nextStep === 'game' && data.mode) {
         setGameSettings({
           mode: data.mode,
+          subMode: data.subMode,
           players: data.players,
           avatars: data.avatars,
           roundsCount: data.roundsCount,
@@ -258,6 +260,7 @@ function App() {
       {mainContent}
       <MenuAudioPlayer gameState={gameState} />
       <UserProfilePanel gameState={gameState} userSession={userSession} />
+      <div className="app-version-tag">v3.1</div>
     </div>
   );
 }

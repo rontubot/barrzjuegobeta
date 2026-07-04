@@ -748,3 +748,17 @@
   border-color: var(--neon-teal);
 }
 
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.avatar-img-picker {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  object-fit: cover;
+}
+

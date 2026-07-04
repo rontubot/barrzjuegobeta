@@ -10,7 +10,15 @@ interface GameSetupProps {
 }
 
 export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext, onBack }) => {
-  const avatars = ['🎤', '🔥', '🎧', '👑', '👽', '⚡', '🎸', '🚀', '💀', '💥', '🛹', '🕶️'];
+  const avatars = [
+    '🎤', '🔥', '🎧', '👑', '👽', '⚡', '🎸', '🚀', '💀', '💥', '🛹', '🕶️',
+    '/avatars/female_1.png',
+    '/avatars/female_2.png',
+    '/avatars/female_3.png',
+    '/avatars/male_1.png',
+    '/avatars/male_2.png',
+    '/avatars/male_3.png'
+  ];
   
   // Configuración de juego
   const [players, setPlayers] = useState<string[]>(['Freestyler A', 'Freestyler B']);
@@ -327,6 +335,7 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
               onClick={() => {
                 onNext('game', {
                   mode: 'solo',
+                  subMode: 'random',
                   players: ['Mi Práctica'],
                   avatars: { 'Mi Práctica': '🎤' },
                   roundsCount: 3,
@@ -335,9 +344,28 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
               }}
             >
               <div className="mode-option-header">
-                <h3>MODO INDIVIDUAL</h3>
+                <h3>MODO INDIVIDUAL (ALEATORIO)</h3>
               </div>
-              <p>Entrená en solitario con bases y desafíos aleatorios para perfeccionar tus patrones.</p>
+              <p>Entrená en solitario con bases y desafíos cargados de forma automática.</p>
+            </button>
+
+            <button 
+              className="mode-option-card"
+              onClick={() => {
+                onNext('game', {
+                  mode: 'solo',
+                  subMode: 'custom',
+                  players: ['Mi Práctica'],
+                  avatars: { 'Mi Práctica': '🎤' },
+                  roundsCount: 3,
+                  selectedCategories: ['palabras', 'tematicas', 'terminaciones']
+                });
+              }}
+            >
+              <div className="mode-option-header">
+                <h3>MODO INDIVIDUAL (PERSONALIZADO)</h3>
+              </div>
+              <p>Seleccioná manualmente tus beats y desafíos de forma personalizada.</p>
             </button>
 
             <button 
@@ -378,8 +406,13 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
                     className="player-avatar-btn"
                     onClick={() => setActiveAvatarPicker(activeAvatarPicker === index ? null : index)}
                     title="Elegir Avatar"
+                    style={{ padding: playerAvatars[index]?.startsWith('/') ? '0' : '' }}
                   >
-                    {playerAvatars[index] || '🎤'}
+                    {playerAvatars[index]?.startsWith('/') ? (
+                      <img src={playerAvatars[index]} alt="" className="avatar-img" />
+                    ) : (
+                      playerAvatars[index] || '🎤'
+                    )}
                   </button>
 
                   <input
@@ -412,8 +445,13 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
                           setPlayerAvatars(nextAvatars);
                           setActiveAvatarPicker(null);
                         }}
+                        style={{ padding: av.startsWith('/') ? '0' : '' }}
                       >
-                        {av}
+                        {av.startsWith('/') ? (
+                          <img src={av} alt="" className="avatar-img-picker" />
+                        ) : (
+                          av
+                        )}
                       </button>
                     ))}
                   </div>
@@ -512,9 +550,23 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
             
             <div className="roulette-display">
               {isSpinning ? (
-                <span className="roulette-name spinning">{players[spinIndex]}</span>
+                <span className="roulette-name spinning" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
+                  {playerAvatars[spinIndex]?.startsWith('/') ? (
+                    <img src={playerAvatars[spinIndex]} alt="" style={{ width: '1.5rem', height: '1.5rem', borderRadius: '50%', objectFit: 'cover' }} />
+                  ) : (
+                    <span>{playerAvatars[spinIndex] || '🎤'}</span>
+                  )}
+                  <span>{players[spinIndex]}</span>
+                </span>
               ) : startingPlayer ? (
-                <div className="winner-announcement scale-up">
+                <div className="winner-announcement scale-up" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '3.5rem', height: '3.5rem', borderRadius: '50%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0, 245, 171, 0.1)', border: '1px solid var(--neon-teal)' }}>
+                    {playerAvatars[players.indexOf(startingPlayer)]?.startsWith('/') ? (
+                      <img src={playerAvatars[players.indexOf(startingPlayer)]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <span style={{ fontSize: '1.8rem' }}>{playerAvatars[players.indexOf(startingPlayer)] || '🎤'}</span>
+                    )}
+                  </div>
                   <span className="winner-name pink-text">{startingPlayer}</span>
                   <span className="winner-tag">¡Rima primero!</span>
                 </div>

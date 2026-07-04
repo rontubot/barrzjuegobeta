@@ -1767,3 +1767,100 @@
   }
 }
 
+/* Custom selectors for Personalizado mode */
+.custom-setup-selectors {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  margin: 20px 0;
+  text-align: left;
+}
+
+.selector-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.selector-label {
+  font-family: var(--font-base);
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--neon-teal);
+  letter-spacing: 1px;
+  text-shadow: 0 0 5px rgba(0, 245, 171, 0.3);
+}
+
+.custom-select {
+  width: 100%;
+  background: rgba(7, 8, 10, 0.85);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  border-radius: 12px;
+  padding: 12px;
+  font-family: var(--font-base);
+  font-size: 0.9rem;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.custom-select:focus {
+  border-color: var(--neon-teal);
+  box-shadow: 0 0 10px rgba(0, 245, 171, 0.25);
+}
+
+.custom-select option {
+  background: #0f1115;
+  color: var(--text-primary);
+  padding: 10px;
+}
+
+.btn-comenzar-turno.disabled-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-muted) !important;
+  cursor: not-allowed;
+  box-shadow: none !important;
+  animation: none !important;
+}
+
+/* Voting options list and button styling */
+.voting-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  margin: 20px 0;
+}
+
+.voting-option-btn {
+  width: 100%;
+  background: rgba(7, 8, 10, 0.7);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  border-radius: 12px;
+  padding: 14px 20px;
+  font-family: var(--font-base);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.voting-option-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--neon-pink);
+  transform: translateY(-1px);
+}
+
+.voting-option-btn.selected {
+  background: rgba(255, 0, 127, 0.15);
+  border-color: var(--neon-pink);
+  box-shadow: 0 0 12px rgba(255, 0, 127, 0.3);
+  color: var(--neon-pink);
+  font-weight: 700;
+}
+

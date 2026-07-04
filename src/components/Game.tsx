@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, RefreshCw, Volume2, RotateCw, Play, Pause, Square, Music, QrCode, Sparkles, User, SkipForward, Star, Award, Home, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Volume2, RotateCw, Play, Pause, Square, Music, QrCode, Sparkles, User, SkipForward, Home, RotateCcw, ChevronLeft, ChevronRight, Gavel } from 'lucide-react';
 import { BEATS_DECK, CHALLENGES_DECK } from '../data/cards';
 import type { BeatCard, ChallengeCard } from '../data/cards';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -20,6 +20,7 @@ interface GameProps {
   onBackToMenu: () => void;
   gameSettings?: {
     mode: 'solo' | 'multiplayer';
+    subMode?: 'random' | 'custom';
     players: string[];
     avatars?: Record<string, string>;
     roundsCount: number;
@@ -47,6 +48,8 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
   // Estados de control de la partida
   const [currentRound, setCurrentRound] = useState(1);
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
+  const [selectedBeatForTurn, setSelectedBeatForTurn] = useState<BeatCard | null>(null);
+  const [selectedChallengeForTurn, setSelectedChallengeForTurn] = useState<ChallengeCard | null>(null);
   
   // Puntuación de los jugadores
   const [scores, setScores] = useState<Record<string, number>>(() => {
@@ -254,6 +257,8 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
     setChallengeFlipped(false);
     setActiveBeat(null);
     setActiveChallenge(null);
+    setSelectedBeatForTurn(null);
+    setSelectedChallengeForTurn(null);
 
     // Comprobar si era el último jugador de la lista activa en esta ronda
     if (currentPlayerIndex === activeRoundPlayers.length - 1) {
@@ -308,8 +313,15 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
   const handleStartTurn = () => {
     setSubState('playing');
     setActiveCardType('challenge'); // Desafío al frente por defecto
-    drawBeat(1000); // 1.0s delay for turn intro flip
-    drawChallenge(1000); // 1.0s delay for turn intro flip
+    if (gameSettings?.subMode === 'custom' && selectedBeatForTurn && selectedChallengeForTurn) {
+      setActiveBeat(selectedBeatForTurn);
+      setActiveChallenge(selectedChallengeForTurn);
+      setBeatFlipped(true);
+      setChallengeFlipped(true);
+    } else {
+      drawBeat(1000); // 1.0s delay for turn intro flip
+      drawChallenge(1000); // 1.0s delay for turn intro flip
+    }
   };
 
   // Reiniciar partida actual
@@ -333,6 +345,8 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
 
     setActiveBeat(null);
     setActiveChallenge(null);
+    setSelectedBeatForTurn(null);
+    setSelectedChallengeForTurn(null);
     setTimerRunning(false);
     setTimerSeconds(90);
     setBeatFlipped(false);
@@ -410,7 +424,13 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                 {isReplicaActive ? `RÉPLICA (RONDA ${currentRound})` : `RONDA ${currentRound} / ${mode === 'solo' ? '∞' : totalRounds}`}
               </div>
               <div className="player-name" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>{gameSettings?.avatars?.[activePlayer] || '🎤'}</span>
+                <span style={{ fontSize: '1.2rem', lineHeight: 1, width: '1.5rem', height: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderRadius: '50%' }}>
+                  {gameSettings?.avatars?.[activePlayer]?.startsWith('/') ? (
+                    <img src={gameSettings?.avatars?.[activePlayer]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    gameSettings?.avatars?.[activePlayer] || '🎤'
+                  )}
+                </span>
                 <span>{activePlayer}</span>
               </div>
             </div>
@@ -425,7 +445,13 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
         {subState === 'ready' && (
           <div className="ready-screen-content glass-panel glow-teal text-center fade-in">
             <div className="ready-avatar-wrapper">
-              <div className="avatar-circle" style={{ fontSize: '3rem' }}>{gameSettings?.avatars?.[activePlayer] || '🎙'}</div>
+              <div className="avatar-circle" style={{ fontSize: gameSettings?.avatars?.[activePlayer]?.startsWith('/') ? '0' : '3rem', overflow: 'hidden' }}>
+                {gameSettings?.avatars?.[activePlayer]?.startsWith('/') ? (
+                  <img src={gameSettings?.avatars?.[activePlayer]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  gameSettings?.avatars?.[activePlayer] || '🎙'
+                )}
+              </div>
             </div>
             
             <span className="ready-round-tag">
@@ -442,13 +468,61 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
             <p className="ready-description">
               {isReplicaActive 
                 ? '¡Esta es la ronda de desempate! Mostrá de qué estás hecho para tomar el primer puesto.'
-                : 'Es tu turno de rimar. Se te asignará un beat aleatorio y una carta de desafío. ¿Listo?'
+                : (gameSettings?.subMode === 'custom'
+                  ? 'Modo Personalizado: Elegí a mano tu base de rap (Beat) y tu desafío antes de arrancar.'
+                  : 'Es tu turno de rimar. Se te asignará un beat aleatorio y una carta de desafío. ¿Listo?')
               }
             </p>
 
-            <button className="btn-comenzar-turno pulse-teal-anim" onClick={handleStartTurn}>
+            {gameSettings?.subMode === 'custom' && (
+              <div className="custom-setup-selectors">
+                <div className="selector-group">
+                  <label className="selector-label">1. ELEGÍ TU BEAT</label>
+                  <select 
+                    className="custom-select beat-select"
+                    value={selectedBeatForTurn?.id || ''}
+                    onChange={(e) => {
+                      const beat = BEATS_DECK.find(b => b.id === e.target.value);
+                      setSelectedBeatForTurn(beat || null);
+                    }}
+                  >
+                    <option value="">-- Seleccionar Beat --</option>
+                    {BEATS_DECK.map(beat => (
+                      <option key={beat.id} value={beat.id}>
+                        🎵 {beat.name} ({beat.bpm} BPM)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="selector-group">
+                  <label className="selector-label">2. ELEGÍ TU DESAFÍO</label>
+                  <select 
+                    className="custom-select challenge-select"
+                    value={selectedChallengeForTurn?.id || ''}
+                    onChange={(e) => {
+                      const challenge = availableChallenges.find(c => c.id === e.target.value);
+                      setSelectedChallengeForTurn(challenge || null);
+                    }}
+                  >
+                    <option value="">-- Seleccionar Desafío --</option>
+                    {availableChallenges.map(c => (
+                      <option key={c.id} value={c.id}>
+                        🃏 [{c.category.toUpperCase()}] {c.title || (c.category === 'palabras' ? 'Palabras' : c.description.substring(0, 30) + '...')}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+
+            <button 
+              className={`btn-comenzar-turno pulse-teal-anim ${(gameSettings?.subMode === 'custom' && (!selectedBeatForTurn || !selectedChallengeForTurn)) ? 'disabled-btn' : ''}`} 
+              onClick={handleStartTurn}
+              disabled={gameSettings?.subMode === 'custom' && (!selectedBeatForTurn || !selectedChallengeForTurn)}
+            >
               <Play size={20} fill="currentColor" />
-              <span>COMENZAR TURNO</span>
+              <span>{gameSettings?.subMode === 'custom' ? 'ARRANCAR TURNO' : 'COMENZAR TURNO'}</span>
             </button>
           </div>
         )}
@@ -590,9 +664,11 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                             <span className="card-brand">BARRZJUEGO ©</span>
                           </div>
 
-                          <button className="btn-card-redraw" onClick={(e) => { e.stopPropagation(); drawChallenge(400); }}>
-                            <RefreshCw size={12} /> Cambiar Desafío
-                          </button>
+                          {gameSettings?.subMode !== 'custom' && (
+                            <button className="btn-card-redraw" onClick={(e) => { e.stopPropagation(); drawChallenge(400); }}>
+                              <RefreshCw size={12} /> Cambiar Desafío
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -748,9 +824,11 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                             </>
                           )}
 
-                          <button className="btn-card-redraw" onClick={(e) => { e.stopPropagation(); drawBeat(400); }}>
-                            <RefreshCw size={12} /> Cambiar Beat
-                          </button>
+                          {gameSettings?.subMode !== 'custom' && (
+                            <button className="btn-card-redraw" onClick={(e) => { e.stopPropagation(); drawBeat(400); }}>
+                              <RefreshCw size={12} /> Cambiar Beat
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -792,7 +870,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
         {subState === 'scoring' && (
           <div className="scoring-screen-content glass-panel glow-pink text-center fade-in">
             <div className="medal-icon-wrapper">
-              <Award size={48} className="pink-text" />
+              <Gavel size={48} className="pink-text" />
             </div>
 
             <span className="scoring-tag">VOTACIÓN DE JUGADORES</span>
@@ -802,7 +880,13 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
               <div className="voter-badge-container">
                 <span className="voter-label font-base">Le toca votar a:</span>
                 <div className="voter-name-badge pulse-teal-anim" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span>{gameSettings?.avatars?.[currentVoter] || '🎤'}</span>
+                  <span style={{ width: '1.5rem', height: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderRadius: '50%' }}>
+                    {gameSettings?.avatars?.[currentVoter]?.startsWith('/') ? (
+                      <img src={gameSettings?.avatars?.[currentVoter]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      gameSettings?.avatars?.[currentVoter] || '🎤'
+                    )}
+                  </span>
                   <span>{currentVoter}</span>
                 </div>
               </div>
@@ -811,25 +895,22 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                 Puntúa la improvisación de <strong className="teal-text">{activePlayer}</strong> (del 1 al 4):
               </p>
 
-              {/* Estrellas interactivas 1-4 */}
-              <div className="stars-rating-container">
-                {[1, 2, 3, 4].map((star) => (
+              <div className="voting-options-list">
+                {[
+                  { value: 1, label: '👎 Flojo - Falta práctica' },
+                  { value: 2, label: '😐 Regular - Se trabó un poco' },
+                  { value: 3, label: '🔥 Bueno - Buenas métricas' },
+                  { value: 4, label: '👑 Excelente - ¡Rima épica!' }
+                ].map((opt) => (
                   <button
-                    key={star}
+                    key={opt.value}
                     type="button"
-                    className={`star-btn ${star <= selectedRating ? 'active' : ''}`}
-                    onClick={() => setSelectedRating(star)}
+                    className={`voting-option-btn ${selectedRating === opt.value ? 'selected' : ''}`}
+                    onClick={() => setSelectedRating(opt.value)}
                   >
-                    <Star size={36} fill={star <= selectedRating ? 'var(--neon-pink)' : 'none'} />
+                    {opt.label}
                   </button>
                 ))}
-              </div>
-
-              <div className="rating-desc-pill">
-                {selectedRating === 1 && '👎 Flojo - Falta práctica'}
-                {selectedRating === 2 && '😐 Regular - Se trabó un poco'}
-                {selectedRating === 3 && '🔥 Bueno - Buenas métricas'}
-                {selectedRating === 4 && '👑 Excelente - ¡Rima épica!'}
               </div>
             </div>
 
@@ -902,9 +983,13 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                 <div className="podium-step step-second fade-in">
                   {ranksList[1].rank === 1 && <span className="winner-trophy">👑</span>}
                   <span className="podium-rank">{ranksList[1].rank}</span>
-                  <span className={`podium-name ${ranksList[1].rank === 1 ? 'pink-text' : ''}`}>
-                    <span style={{ marginRight: '6px' }}>{gameSettings?.avatars?.[ranksList[1].name] || '🎤'}</span>
-                    {ranksList[1].name}
+                  <span className={`podium-name ${ranksList[1].rank === 1 ? 'pink-text' : ''}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+                    {gameSettings?.avatars?.[ranksList[1].name]?.startsWith('/') ? (
+                      <img src={gameSettings?.avatars?.[ranksList[1].name]} alt="" style={{ width: '1.25rem', height: '1.25rem', borderRadius: '50%', objectFit: 'cover' }} />
+                    ) : (
+                      <span>{gameSettings?.avatars?.[ranksList[1].name] || '🎤'}</span>
+                    )}
+                    <span>{ranksList[1].name}</span>
                   </span>
                   <span className="podium-score">{ranksList[1].points} pts</span>
                   <div className={`podium-pillar ${ranksList[1].rank === 1 ? 'pillar-first glow-pink' : 'pillar-second'}`}>
@@ -918,9 +1003,13 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                 <div className="podium-step step-first fade-in">
                   <span className="winner-trophy">👑</span>
                   <span className="podium-rank">{ranksList[0].rank}</span>
-                  <span className="podium-name pink-text">
-                    <span style={{ marginRight: '6px' }}>{gameSettings?.avatars?.[ranksList[0].name] || '🎤'}</span>
-                    {ranksList[0].name}
+                  <span className="podium-name pink-text" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+                    {gameSettings?.avatars?.[ranksList[0].name]?.startsWith('/') ? (
+                      <img src={gameSettings?.avatars?.[ranksList[0].name]} alt="" style={{ width: '1.25rem', height: '1.25rem', borderRadius: '50%', objectFit: 'cover' }} />
+                    ) : (
+                      <span>{gameSettings?.avatars?.[ranksList[0].name] || '🎤'}</span>
+                    )}
+                    <span>{ranksList[0].name}</span>
                   </span>
                   <span className="podium-score">{ranksList[0].points} pts</span>
                   <div className="podium-pillar pillar-first glow-pink">
@@ -934,9 +1023,13 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                 <div className="podium-step step-third fade-in">
                   {ranksList[2].rank === 1 && <span className="winner-trophy">👑</span>}
                   <span className="podium-rank">{ranksList[2].rank}</span>
-                  <span className={`podium-name ${ranksList[2].rank === 1 ? 'pink-text' : ranksList[2].rank === 2 ? 'teal-text' : ''}`}>
-                    <span style={{ marginRight: '6px' }}>{gameSettings?.avatars?.[ranksList[2].name] || '🎤'}</span>
-                    {ranksList[2].name}
+                  <span className={`podium-name ${ranksList[2].rank === 1 ? 'pink-text' : ranksList[2].rank === 2 ? 'teal-text' : ''}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+                    {gameSettings?.avatars?.[ranksList[2].name]?.startsWith('/') ? (
+                      <img src={gameSettings?.avatars?.[ranksList[2].name]} alt="" style={{ width: '1.25rem', height: '1.25rem', borderRadius: '50%', objectFit: 'cover' }} />
+                    ) : (
+                      <span>{gameSettings?.avatars?.[ranksList[2].name] || '🎤'}</span>
+                    )}
+                    <span>{ranksList[2].name}</span>
                   </span>
                   <span className="podium-score">{ranksList[2].points} pts</span>
                   <div className={`podium-pillar ${
@@ -966,9 +1059,13 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                   {ranksList.map(({ name, points, rank }) => (
                     <tr key={name} className={rank === 1 ? 'winner-row' : ''}>
                       <td>#{rank}</td>
-                      <td>
-                        <span style={{ marginRight: '8px' }}>{gameSettings?.avatars?.[name] || '🎤'}</span>
-                        {name}
+                      <td style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
+                        {gameSettings?.avatars?.[name]?.startsWith('/') ? (
+                          <img src={gameSettings?.avatars?.[name]} alt="" style={{ width: '1.25rem', height: '1.25rem', borderRadius: '50%', objectFit: 'cover' }} />
+                        ) : (
+                          <span style={{ marginRight: '8px' }}>{gameSettings?.avatars?.[name] || '🎤'}</span>
+                        )}
+                        <span>{name}</span>
                       </td>
                       <td><strong>{points}</strong> pts</td>
                     </tr>
