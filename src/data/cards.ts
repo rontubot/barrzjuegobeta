@@ -4,6 +4,7 @@ export interface BeatCard {
   bpm: number;
   spotifyUrl: string;
   spotifyUri: string;
+  audioUrl?: string;
 }
 
 export interface ChallengeCard {
@@ -26,56 +27,64 @@ export const BEATS_DECK: BeatCard[] = [
     name: 'RUIDA 86',
     bpm: 86,
     spotifyUrl: 'https://open.spotify.com/track/4PTG3Z6ehGkBF3sI7Wq2Ag',
-    spotifyUri: 'spotify:track:4PTG3Z6ehGkBF3sI7Wq2Ag'
+    spotifyUri: 'spotify:track:4PTG3Z6ehGkBF3sI7Wq2Ag',
+    audioUrl: '/soundtracks/back.mpeg'
   },
   {
     id: 'beat-2',
     name: 'CITRICO 93',
     bpm: 93,
     spotifyUrl: 'https://open.spotify.com/track/17dZsnvjQkXUWh6Sifg6hV',
-    spotifyUri: 'spotify:track:17dZsnvjQkXUWh6Sifg6hV'
+    spotifyUri: 'spotify:track:17dZsnvjQkXUWh6Sifg6hV',
+    audioUrl: '/soundtracks/desconocidos.mpeg'
   },
   {
     id: 'beat-3',
     name: 'CHOCOLATADA 91',
     bpm: 91,
     spotifyUrl: 'https://open.spotify.com/track/5QdA5bEwS1hRzWbTep7XjO',
-    spotifyUri: 'spotify:track:5QdA5bEwS1hRzWbTep7XjO'
+    spotifyUri: 'spotify:track:5QdA5bEwS1hRzWbTep7XjO',
+    audioUrl: '/soundtracks/electric-try 3.mp3.mpeg'
   },
   {
     id: 'beat-4',
     name: 'RAMEN 89',
     bpm: 89,
     spotifyUrl: 'https://open.spotify.com/track/27O7B27xW3g3G0c4xX4Xp3',
-    spotifyUri: 'spotify:track:27O7B27xW3g3G0c4xX4Xp3'
+    spotifyUri: 'spotify:track:27O7B27xW3g3G0c4xX4Xp3',
+    audioUrl: '/soundtracks/ovni 2.mp3.mpeg'
   },
   {
     id: 'beat-5',
     name: 'PAN CASERO 91',
     bpm: 91,
     spotifyUrl: 'https://open.spotify.com/track/3zHn2l3j8RSpYyGf9H2D3B',
-    spotifyUri: 'spotify:track:3zHn2l3j8RSpYyGf9H2D3B'
+    spotifyUri: 'spotify:track:3zHn2l3j8RSpYyGf9H2D3B',
+    audioUrl: '/soundtracks/back.mpeg'
   },
   {
     id: 'beat-6',
     name: 'ESPEJO 87',
     bpm: 87,
     spotifyUrl: 'https://open.spotify.com/track/4F4B3z4c1D2e3f4g5h6i7j',
-    spotifyUri: 'spotify:track:4F4B3z4c1D2e3f4g5h6i7j'
+    spotifyUri: 'spotify:track:4F4B3z4c1D2e3f4g5h6i7j',
+    audioUrl: '/soundtracks/desconocidos.mpeg'
   },
   {
     id: 'beat-7',
     name: 'LA REINA 152',
     bpm: 152,
     spotifyUrl: 'https://open.spotify.com/track/5G5H5i5j5k5l5m5n5o5p5q',
-    spotifyUri: 'spotify:track:5G5H5i5j5k5l5m5n5o5p5q'
+    spotifyUri: 'spotify:track:5G5H5i5j5k5l5m5n5o5p5q',
+    audioUrl: '/soundtracks/electric-try 3.mp3.mpeg'
   },
   {
     id: 'beat-8',
     name: 'PULSO 120',
     bpm: 120,
     spotifyUrl: 'https://open.spotify.com/track/6Q6R6s6t6u6v6w6x6y6z6A',
-    spotifyUri: 'spotify:track:6Q6R6s6t6u6v6w6x6y6z6A'
+    spotifyUri: 'spotify:track:6Q6R6s6t6u6v6w6x6y6z6A',
+    audioUrl: '/soundtracks/ovni 2.mp3.mpeg'
   }
 ];
 

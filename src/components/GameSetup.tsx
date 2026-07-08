@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Users, Play, Plus, Minus, UserPlus, Check, RefreshCw, Volume2, Sparkles, BookOpen, Compass, Radio, ArrowRight } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Users, Play, Pause, ArrowLeft, Plus, Minus, UserPlus, Check, RefreshCw, Volume2, Sparkles, BookOpen, Compass, Radio, ArrowRight } from 'lucide-react';
+import { BEATS_DECK, CHALLENGES_DECK } from '../data/cards';
+import type { BeatCard, ChallengeCard } from '../data/cards';
 import './GameSetup.css';
 
 interface GameSetupProps {
-  step: 'lobby_start' | 'tutorial_ask' | 'link_spotify' | 'mode_selection' | 'setup_players' | 'setup_rounds' | 'setup_deck';
+  step: 'lobby_start' | 'tutorial_ask' | 'link_spotify' | 'mode_selection' | 'setup_individual' | 'setup_players' | 'setup_rounds' | 'setup_deck';
   userSession: any;
   onNext: (nextStep: string, data?: any) => void;
   onBack: () => void;
@@ -34,6 +36,58 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
     '1v1',
     'sacrificio'
   ]);
+
+  // Configuración de modo individual
+  const [individualSubMode, setIndividualSubMode] = useState<'random' | 'custom'>('random');
+  const [selectedBeat, setSelectedBeat] = useState<BeatCard | null>(null);
+  const [selectedChallenge, setSelectedChallenge] = useState<ChallengeCard | null>(null);
+  const [previewingBeatId, setPreviewingBeatId] = useState<string | null>(null);
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Cleanup audio preview when screen changes or sub-mode changes
+  useEffect(() => {
+    return () => {
+      if (previewAudioRef.current) {
+        previewAudioRef.current.pause();
+        previewAudioRef.current = null;
+      }
+      window.dispatchEvent(new CustomEvent('barrz_resume_lobby_music'));
+    };
+  }, [individualSubMode, step]);
+
+  const handleTogglePreview = (beat: BeatCard) => {
+    if (!beat.audioUrl) return;
+
+    if (previewingBeatId === beat.id) {
+      // Pausar
+      if (previewAudioRef.current) {
+        previewAudioRef.current.pause();
+        previewAudioRef.current = null;
+      }
+      setPreviewingBeatId(null);
+      window.dispatchEvent(new CustomEvent('barrz_resume_lobby_music'));
+    } else {
+      // Detener anterior
+      if (previewAudioRef.current) {
+        previewAudioRef.current.pause();
+      }
+      
+      // Despachar evento para pausar música de fondo del lobby
+      window.dispatchEvent(new CustomEvent('barrz_pause_lobby_music'));
+
+      // Reproducir nueva pre-escucha
+      const audio = new Audio(beat.audioUrl);
+      audio.loop = true;
+      previewAudioRef.current = audio;
+      setPreviewingBeatId(beat.id);
+      
+      audio.play().catch(err => {
+        console.log("No se pudo reproducir la pre-escucha del beat:", err);
+        setPreviewingBeatId(null);
+        window.dispatchEvent(new CustomEvent('barrz_resume_lobby_music'));
+      });
+    }
+  };
   
   // Sorteo de quién empieza
   const [startingPlayer, setStartingPlayer] = useState('');
@@ -332,40 +386,12 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
 
             <button 
               className="mode-option-card"
-              onClick={() => {
-                onNext('game', {
-                  mode: 'solo',
-                  subMode: 'random',
-                  players: ['Mi Práctica'],
-                  avatars: { 'Mi Práctica': '🎤' },
-                  roundsCount: 3,
-                  selectedCategories: ['palabras', 'tematicas', 'terminaciones']
-                });
-              }}
+              onClick={() => onNext('setup_individual')}
             >
               <div className="mode-option-header">
-                <h3>MODO INDIVIDUAL (ALEATORIO)</h3>
+                <h3>MODO INDIVIDUAL</h3>
               </div>
-              <p>Entrená en solitario con bases y desafíos cargados de forma automática.</p>
-            </button>
-
-            <button 
-              className="mode-option-card"
-              onClick={() => {
-                onNext('game', {
-                  mode: 'solo',
-                  subMode: 'custom',
-                  players: ['Mi Práctica'],
-                  avatars: { 'Mi Práctica': '🎤' },
-                  roundsCount: 3,
-                  selectedCategories: ['palabras', 'tematicas', 'terminaciones']
-                });
-              }}
-            >
-              <div className="mode-option-header">
-                <h3>MODO INDIVIDUAL (PERSONALIZADO)</h3>
-              </div>
-              <p>Seleccioná manualmente tus beats y desafíos de forma personalizada.</p>
+              <p>Entrená en solitario con bases y desafíos para perfeccionar tus patrones. Admite flujo automático o selección a mano.</p>
             </button>
 
             <button 
@@ -388,6 +414,160 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
           </div>
         </div>
       )}
+
+      {/* ── SETUP INDIVIDUAL ─────────────────────────────────────────── */}
+      {step === 'setup_individual' && (() => {
+        const availableChallenges = CHALLENGES_DECK.filter(c =>
+          ['palabras', 'tematicas', 'terminaciones'].includes(c.category)
+        );
+        const canStart = individualSubMode === 'random' || (selectedBeat !== null && selectedChallenge !== null);
+        
+        return (
+          <div className="setup-individual-screen fade-in">
+            {/* Header */}
+            <div className="individual-header">
+              <button className="btn-back-individual" onClick={onBack}>
+                <ArrowLeft size={18} />
+                <span>Volver</span>
+              </button>
+              <h2 className="font-graffiti text-glow-teal">MODO INDIVIDUAL</h2>
+            </div>
+
+            {/* Sub-mode Tabs */}
+            <div className="individual-mode-tabs">
+              <button
+                className={`individual-tab ${individualSubMode === 'random' ? 'active' : ''}`}
+                onClick={() => {
+                  setIndividualSubMode('random');
+                  setSelectedBeat(null);
+                  setSelectedChallenge(null);
+                }}
+              >
+                🎲 ALEATORIO
+              </button>
+              <button
+                className={`individual-tab ${individualSubMode === 'custom' ? 'active' : ''}`}
+                onClick={() => setIndividualSubMode('custom')}
+              >
+                🎛️ PERSONALIZADO
+              </button>
+            </div>
+
+            {/* Aleatorio mode */}
+            {individualSubMode === 'random' && (
+              <div className="individual-random-content fade-in">
+                <div className="random-mode-card glass-panel">
+                  <div className="random-icon">🎲</div>
+                  <h3>Modo Aleatorio</h3>
+                  <p>El sistema seleccionará un beat y un desafío automáticamente al iniciar cada turno. Perfecto para entrenamientos rápidos y variados.</p>
+                  <div className="random-features">
+                    <span className="feature-chip">🎵 Beat aleatorio</span>
+                    <span className="feature-chip">🃏 Desafío sorpresa</span>
+                    <span className="feature-chip">⚡ Sin configuración</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Personalizado mode */}
+            {individualSubMode === 'custom' && (
+              <div className="individual-custom-content fade-in">
+                {/* Beats column */}
+                <div className="selection-column">
+                  <div className="column-header">
+                    <h3 className="teal-text">🎵 ELEGÍ TU BASE</h3>
+                    {selectedBeat && <span className="selection-badge">✓ {selectedBeat.name}</span>}
+                  </div>
+                  <div className="beats-list scrollable-list">
+                    {BEATS_DECK.map(beat => (
+                      <div
+                        key={beat.id}
+                        className={`beat-item ${selectedBeat?.id === beat.id ? 'selected' : ''}`}
+                        onClick={() => setSelectedBeat(beat)}
+                      >
+                        <div className="beat-info">
+                          <span className="beat-name">{beat.name}</span>
+                          <span className="beat-bpm">{beat.bpm} BPM</span>
+                        </div>
+                        <div className="beat-actions">
+                          {beat.audioUrl && (
+                            <button
+                              className={`btn-preview ${previewingBeatId === beat.id ? 'previewing' : ''}`}
+                              onClick={e => { e.stopPropagation(); handleTogglePreview(beat); }}
+                              title={previewingBeatId === beat.id ? 'Detener' : 'Escuchar'}
+                            >
+                              {previewingBeatId === beat.id ? <Pause size={14} /> : <Play size={14} />}
+                            </button>
+                          )}
+                          <div className={`beat-select-dot ${selectedBeat?.id === beat.id ? 'active' : ''}`} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Challenges column */}
+                <div className="selection-column">
+                  <div className="column-header">
+                    <h3 className="pink-text">🃏 ELEGÍ TU DESAFÍO</h3>
+                    {selectedChallenge && <span className="selection-badge">✓ {selectedChallenge.title || selectedChallenge.category}</span>}
+                  </div>
+                  <div className="challenges-list scrollable-list">
+                    {availableChallenges.map(challenge => (
+                      <div
+                        key={challenge.id}
+                        className={`challenge-item ${selectedChallenge?.id === challenge.id ? 'selected' : ''}`}
+                        onClick={() => setSelectedChallenge(challenge)}
+                      >
+                        <div className="challenge-info">
+                          <span className="challenge-category">{challenge.category.toUpperCase()}</span>
+                          <span className="challenge-title">{challenge.title || challenge.description.substring(0, 40) + '...'}</span>
+                        </div>
+                        <div className={`challenge-select-dot ${selectedChallenge?.id === challenge.id ? 'active' : ''}`} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Start button */}
+            <div className="individual-start-footer">
+              <button
+                className={`btn-individual-start ${!canStart ? 'disabled' : 'pulse-teal-anim'}`}
+                disabled={!canStart}
+                onClick={() => {
+                  // Stop preview audio if playing
+                  if (previewAudioRef.current) {
+                    previewAudioRef.current.pause();
+                    previewAudioRef.current = null;
+                    setPreviewingBeatId(null);
+                  }
+                  onNext('game', {
+                    mode: 'solo',
+                    subMode: individualSubMode,
+                    players: ['Mi Práctica'],
+                    avatars: { 'Mi Práctica': '🎤' },
+                    roundsCount: 3,
+                    selectedCategories: ['palabras', 'tematicas', 'terminaciones'],
+                    initialBeat: individualSubMode === 'custom' ? selectedBeat : null,
+                    initialChallenge: individualSubMode === 'custom' ? selectedChallenge : null
+                  });
+                }}
+              >
+                {!canStart ? (
+                  <span>Seleccioná un beat y desafío</span>
+                ) : (
+                  <>
+                    <Play size={18} fill="currentColor" />
+                    <span>ARRANCAR SESIÓN</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── SETUP PLAYERS ──────────────────────────────────────────────── */}
       {step === 'setup_players' && (

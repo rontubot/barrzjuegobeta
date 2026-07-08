@@ -18,6 +18,7 @@ type GameState =
   | 'tutorial_ask'
   | 'link_spotify'
   | 'mode_selection'
+  | 'setup_individual'
   | 'setup_players'
   | 'setup_rounds'
   | 'setup_deck'
@@ -37,6 +38,8 @@ interface GameSettings {
   roundsCount: number;
   selectedCategories: string[];
   startingPlayer: string;
+  initialBeat?: any;
+  initialChallenge?: any;
 }
 
 function App() {
@@ -117,7 +120,9 @@ function App() {
           avatars: data.avatars,
           roundsCount: data.roundsCount,
           selectedCategories: data.selectedCategories,
-          startingPlayer: data.startingPlayer || data.players[0]
+          startingPlayer: data.startingPlayer || data.players[0],
+          initialBeat: data.initialBeat,
+          initialChallenge: data.initialChallenge
         });
       }
     }
@@ -156,6 +161,9 @@ function App() {
         break;
       case 'mode_selection':
         setGameState('link_spotify');
+        break;
+      case 'setup_individual':
+        setGameState('mode_selection');
         break;
       case 'setup_players':
         setGameState('mode_selection');
@@ -218,6 +226,7 @@ function App() {
     gameState === 'tutorial_ask' ||
     gameState === 'link_spotify' ||
     gameState === 'mode_selection' ||
+    gameState === 'setup_individual' ||
     gameState === 'setup_players' ||
     gameState === 'setup_rounds' ||
     gameState === 'setup_deck'
