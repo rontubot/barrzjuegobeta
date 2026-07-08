@@ -602,9 +602,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                   <h3 className="carousel-card-tag pink-text">Desafío (Estilo de Juego)</h3>
                   {!activeChallenge ? (
                     <div className="deck-pile challenge-pile glass-panel glow-pink" onClick={() => drawChallenge(400)}>
-                      <div className="deck-card-back pink-bg">
-                        <span className="card-logo-text teal-glow-text">DESAFIOS</span>
-                        <span className="tap-instruction">TOCAR PARA SACAR</span>
+                      <div className="deck-card-back" style={{ backgroundImage: 'url("/images/dorso_desafio.png")', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
                       </div>
                       <div className="stacked-card card-1"></div>
                       <div className="stacked-card card-2"></div>
@@ -612,9 +610,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                   ) : (
                     <div className="card-container-3d">
                       <div className={`card-inner-3d ${challengeFlipped ? 'flipped' : ''}`}>
-                        <div className="card-face card-back glow-pink" style={{ borderColor: 'var(--neon-pink)' }}>
-                          <img src="/Barrzjuego.png" alt="BARRZ Logo" className="card-back-logo" />
-                          <span className="card-logo-text teal-glow-text">DESAFIOS</span>
+                        <div className="card-face card-back glow-pink" style={{ backgroundImage: 'url("/images/dorso_desafio.png")', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', borderColor: 'var(--neon-pink)' }}>
                         </div>
 
                         <div className="card-face card-front glow-teal" style={{ borderColor: 'var(--neon-teal)' }}>
@@ -731,9 +727,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                   <h3 className="carousel-card-tag teal-text">Beat (Instrumental)</h3>
                   {!activeBeat ? (
                     <div className="deck-pile beat-pile glass-panel glow-teal" onClick={() => drawBeat(400)}>
-                      <div className="deck-card-back teal-bg">
-                        <span className="card-logo-text pink-glow-text">BEATS</span>
-                        <span className="tap-instruction">TOCAR PARA SACAR</span>
+                      <div className="deck-card-back" style={{ backgroundImage: 'url("/images/dorso_beat.png")', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
                       </div>
                       <div className="stacked-card card-1"></div>
                       <div className="stacked-card card-2"></div>
@@ -741,9 +735,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                   ) : (
                     <div className="card-container-3d">
                       <div className={`card-inner-3d ${beatFlipped ? 'flipped' : ''}`}>
-                        <div className="card-face card-back glow-teal" style={{ borderColor: 'var(--neon-teal)' }}>
-                          <img src="/Barrzjuego.png" alt="BARRZ Logo" className="card-back-logo" />
-                          <span className="card-logo-text pink-glow-text">BEATS</span>
+                        <div className="card-face card-back glow-teal" style={{ backgroundImage: 'url("/images/dorso_beat.png")', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', borderColor: 'var(--neon-teal)' }}>
                         </div>
 
                         <div className="card-face card-front glow-pink" style={{ borderColor: 'var(--neon-pink)' }}>
