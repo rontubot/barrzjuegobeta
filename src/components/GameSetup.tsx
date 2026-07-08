@@ -26,7 +26,7 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
   const [players, setPlayers] = useState<string[]>(['Freestyler A', 'Freestyler B']);
   const [playerAvatars, setPlayerAvatars] = useState<string[]>(['🎤', '🔥']);
   const [activeAvatarPicker, setActiveAvatarPicker] = useState<number | null>(null);
-  const [roundsCount, setRoundsCount] = useState(5);
+  const [roundsCount, setRoundsCount] = useState(3);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([
     'palabras',
     'tematicas',

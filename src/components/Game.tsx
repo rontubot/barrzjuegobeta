@@ -905,9 +905,6 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
         {/* ── 3. SCORING PANEL (PUNTUAR AL COMPETIDOR) ────────────────────── */}
         {subState === 'scoring' && (
           <div className="scoring-screen-content glass-panel glow-pink text-center fade-in">
-            <div className="medal-icon-wrapper">
-              <Gavel size={48} className="pink-text" />
-            </div>
 
             <span className="scoring-tag">VOTACIÓN DE JUGADORES</span>
             <h2 className="scoring-title font-graffiti">TURNO DE VOTAR</h2>
@@ -933,10 +930,10 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
 
               <div className="voting-options-list">
                 {[
-                  { value: 1, label: '👎 Flojo - Falta práctica' },
-                  { value: 2, label: '😐 Regular - Se trabó un poco' },
-                  { value: 3, label: '🔥 Bueno - Buenas métricas' },
-                  { value: 4, label: '👑 Excelente - ¡Rima épica!' }
+                  { value: 1, label: '👎 Flojo - Falta práctica', pts: '1 pt' },
+                  { value: 2, label: '😐 Regular - Se trabó un poco', pts: '2 pts' },
+                  { value: 3, label: '🔥 Bueno - Buenas métricas', pts: '3 pts' },
+                  { value: 4, label: '👑 Excelente - ¡Rima épica!', pts: '4 pts' }
                 ].map((opt) => (
                   <button
                     key={opt.value}
@@ -944,7 +941,8 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                     className={`voting-option-btn ${selectedRating === opt.value ? 'selected' : ''}`}
                     onClick={() => setSelectedRating(opt.value)}
                   >
-                    {opt.label}
+                    <span>{opt.label}</span>
+                    <span className="voting-option-pts">{opt.pts}</span>
                   </button>
                 ))}
               </div>

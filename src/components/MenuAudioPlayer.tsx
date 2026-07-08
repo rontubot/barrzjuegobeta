@@ -371,55 +371,13 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
     }
 
     if (isPlaying) {
-      // --- FADE OUT AL PAUSAR ---
-      setIsPlaying(false); // Respuesta visual instantánea al pausar
-      const startVol = audioRef.current.volume;
-      let curVol = startVol;
-      const steps = 12; // 240ms total
-      const stepTime = 20; 
-      const volDelta = startVol / steps;
-
-      fadeIntervalRef.current = setInterval(() => {
-        curVol = Math.max(0, curVol - volDelta);
-        if (audioRef.current) {
-          audioRef.current.volume = curVol;
-        }
-
-        if (curVol <= 0) {
-          clearInterval(fadeIntervalRef.current);
-          fadeIntervalRef.current = null;
-          if (audioRef.current) {
-            audioRef.current.pause();
-          }
-        }
-      }, stepTime);
+      audioRef.current.pause();
+      setIsPlaying(false);
     } else {
-      // --- FADE IN AL REPRODUCIR ---
-      audioRef.current.volume = 0;
+      audioRef.current.volume = isMuted ? 0 : volume;
       audioRef.current.play().catch(e => console.log(e));
-      setIsPlaying(true); // Respuesta visual instantánea al reproducir
-      triggerBanner(); // Al darle play, volvemos a mostrar qué está sonando
-
-      const targetVol = isMuted ? 0 : volume;
-      let curVol = 0;
-      const steps = 15; // 300ms total
-      const stepTime = 20; 
-      const volDelta = targetVol / steps;
-
-      fadeIntervalRef.current = setInterval(() => {
-        curVol = Math.min(targetVol, curVol + volDelta);
-        if (audioRef.current) {
-          audioRef.current.volume = curVol;
-        }
-
-        if (curVol >= targetVol) {
-          clearInterval(fadeIntervalRef.current);
-          fadeIntervalRef.current = null;
-          if (audioRef.current) {
-            audioRef.current.volume = targetVol;
-          }
-        }
-      }, stepTime);
+      setIsPlaying(true);
+      triggerBanner();
     }
   };
 
