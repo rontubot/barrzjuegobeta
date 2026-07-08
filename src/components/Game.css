@@ -736,26 +736,27 @@
 
 .words-grid-8 {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 7px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px 8px;
   flex: 1;
 }
 
 .word-badge-8 {
   background: rgba(7, 8, 10, 0.85);
   border: 1px solid var(--glass-border);
-  border-radius: 9px;
-  padding: 7px 4px;
-  font-size: 0.72rem;
+  border-radius: 12px;
+  padding: 10px 6px;
+  font-size: 0.85rem;
   font-weight: 800;
   text-align: center;
   color: var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 34px;
+  min-height: 48px;
   letter-spacing: 0.03em;
   transition: transform 0.15s ease;
+  word-break: break-word;
 }
 
 .word-badge-8:hover {
