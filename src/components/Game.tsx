@@ -26,6 +26,8 @@ interface GameProps {
     roundsCount: number;
     selectedCategories: string[];
     startingPlayer: string;
+    initialBeat?: BeatCard | null;
+    initialChallenge?: ChallengeCard | null;
   };
 }
 
@@ -60,8 +62,15 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
     return initialScores;
   });
 
+  // Filtrar cartas de desafíos por categorías seleccionadas
+  const filteredChallenges = CHALLENGES_DECK.filter(card => categories.includes(card.category));
+  const availableChallenges = filteredChallenges.length > 0 ? filteredChallenges : CHALLENGES_DECK;
+
   // Estados de sub-pantallas del juego: 'ready' | 'playing' | 'scoring' | 'replica_announcement' | 'game_over'
-  const [subState, setSubState] = useState<'ready' | 'playing' | 'scoring' | 'replica_announcement' | 'game_over'>('ready');
+  const [subState, setSubState] = useState<'ready' | 'playing' | 'scoring' | 'replica_announcement' | 'game_over'>(
+    gameSettings?.mode === 'solo' ? 'playing' : 'ready'
+  );
+  
   const [selectedRating, setSelectedRating] = useState<number>(3); // Estrellas por defecto: 3
   const [currentVoterIndex, setCurrentVoterIndex] = useState<number>(0);
   const [votesReceived, setVotesReceived] = useState<Record<string, number>>({});
@@ -77,14 +86,28 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
   const [replicaPlayers, setReplicaPlayers] = useState<string[]>([]);
 
   // Cartas activas
-  const [activeBeat, setActiveBeat] = useState<BeatCard | null>(null);
-  const [activeChallenge, setActiveChallenge] = useState<ChallengeCard | null>(null);
+  const [activeBeat, setActiveBeat] = useState<BeatCard | null>(() => {
+    if (gameSettings?.initialBeat) return gameSettings.initialBeat;
+    if (gameSettings?.mode === 'solo' && gameSettings?.subMode === 'random') {
+      return BEATS_DECK[Math.floor(Math.random() * BEATS_DECK.length)];
+    }
+    return null;
+  });
+
+  const [activeChallenge, setActiveChallenge] = useState<ChallengeCard | null>(() => {
+    if (gameSettings?.initialChallenge) return gameSettings.initialChallenge;
+    if (gameSettings?.mode === 'solo' && gameSettings?.subMode === 'random') {
+      return availableChallenges[Math.floor(Math.random() * availableChallenges.length)];
+    }
+    return null;
+  });
+
   const [activeCardType, setActiveCardType] = useState<'challenge' | 'beat'>('challenge');
   const [replicaTheme, setReplicaTheme] = useState<{ title: string; desc: string; highlight: string } | null>(null);
 
   // Estados de animación de cartas
-  const [beatFlipped, setBeatFlipped] = useState(false);
-  const [challengeFlipped, setChallengeFlipped] = useState(false);
+  const [beatFlipped, setBeatFlipped] = useState(gameSettings?.mode === 'solo');
+  const [challengeFlipped, setChallengeFlipped] = useState(gameSettings?.mode === 'solo');
 
 
   // Animación de salida global
@@ -102,9 +125,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
   // Metrónomo visual
   const [isMetronomeOn, setIsMetronomeOn] = useState(true);
 
-  // Filtrar cartas de desafíos por categorías seleccionadas
-  const filteredChallenges = CHALLENGES_DECK.filter(card => categories.includes(card.category));
-  const availableChallenges = filteredChallenges.length > 0 ? filteredChallenges : CHALLENGES_DECK;
+
 
   // Lista de competidores activos en la ronda actual (en réplica solo participan los empatados)
   const activeRoundPlayers = isReplicaActive ? replicaPlayers : playerNames;
@@ -252,6 +273,34 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
 
   // Avanzar turno, evaluar empates / réplicas o finalizar
   const advanceTurn = (currentScores: Record<string, number>) => {
+    // Si estamos en modo solo y ya terminamos las rondas, terminar juego
+    if (mode === 'solo' && currentRound >= totalRounds) {
+      setSubState('game_over');
+      return;
+    }
+
+    if (mode === 'solo') {
+      // Avanzar de ronda
+      setCurrentRound(prev => prev + 1);
+      
+      // Auto-iniciar siguiente turno sin pasar por 'ready'
+      setSubState('playing');
+      setActiveCardType('challenge');
+      
+      if (gameSettings?.subMode === 'random') {
+        setBeatFlipped(false);
+        setChallengeFlipped(false);
+        drawBeat(200);
+        drawChallenge(200);
+      } else {
+        // En custom, mantenemos las cartas actuales en pantalla
+        // simplemente reiniciamos el timer
+        setTimerSeconds(activeChallenge?.timeLimit || 90);
+      }
+      return;
+    }
+
+    // --- FLUJO MULTIJUGADOR NORMAL ---
     setBeatFlipped(false);
     setChallengeFlipped(false);
     setActiveBeat(null);
