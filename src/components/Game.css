@@ -725,6 +725,72 @@
   border-color: var(--neon-teal);
 }
 
+/* ── NUEVA CARTA PALABRAS (8 palabras + botón VARIAR) ─────────────────── */
+.words-challenge-layout-new {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  gap: 10px;
+}
+
+.words-grid-8 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+  flex: 1;
+}
+
+.word-badge-8 {
+  background: rgba(7, 8, 10, 0.85);
+  border: 1px solid var(--glass-border);
+  border-radius: 9px;
+  padding: 7px 4px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-align: center;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  letter-spacing: 0.03em;
+  transition: transform 0.15s ease;
+}
+
+.word-badge-8:hover {
+  transform: scale(1.04);
+}
+
+.words-variar-divider {
+  display: flex;
+  justify-content: center;
+  padding: 4px 0 2px;
+}
+
+.btn-variar {
+  background: rgba(0, 245, 171, 0.08);
+  border: 1px solid rgba(0, 245, 171, 0.35);
+  color: var(--neon-teal);
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transition: all 0.2s ease;
+}
+
+.btn-variar:hover {
+  background: rgba(0, 245, 171, 0.18);
+  border-color: var(--neon-teal);
+  box-shadow: 0 0 10px rgba(0, 245, 171, 0.25);
+  transform: scale(1.04);
+}
+
 /* 2. Categoría Beatbox (Con Timer) */
 .beatbox-challenge-layout {
   display: flex;

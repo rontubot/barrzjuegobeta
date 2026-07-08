@@ -417,9 +417,7 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
 
       {/* ── SETUP INDIVIDUAL ─────────────────────────────────────────── */}
       {step === 'setup_individual' && (() => {
-        const availableChallenges = CHALLENGES_DECK.filter(c =>
-          ['palabras', 'tematicas', 'terminaciones'].includes(c.category)
-        );
+        const availableCategories = categoriesList.filter(c => c.id !== '1v1');
         const canStart = individualSubMode === 'random' || (selectedBeat !== null && selectedChallenge !== null);
         
         return (
@@ -513,17 +511,23 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
                     {selectedChallenge && <span className="selection-badge">✓ {selectedChallenge.title || selectedChallenge.category}</span>}
                   </div>
                   <div className="challenges-list scrollable-list">
-                    {availableChallenges.map(challenge => (
+                    {availableCategories.map(cat => (
                       <div
-                        key={challenge.id}
-                        className={`challenge-item ${selectedChallenge?.id === challenge.id ? 'selected' : ''}`}
-                        onClick={() => setSelectedChallenge(challenge)}
+                        key={cat.id}
+                        className={`challenge-item ${selectedChallenge?.category === cat.id ? 'selected' : ''}`}
+                        onClick={() => {
+                          const categoryCards = CHALLENGES_DECK.filter(c => c.category === cat.id);
+                          if (categoryCards.length > 0) {
+                            const randomCard = categoryCards[Math.floor(Math.random() * categoryCards.length)];
+                            setSelectedChallenge(randomCard);
+                          }
+                        }}
                       >
                         <div className="challenge-info">
-                          <span className="challenge-category">{challenge.category.toUpperCase()}</span>
-                          <span className="challenge-title">{challenge.title || challenge.description.substring(0, 40) + '...'}</span>
+                          <span className="challenge-category">{cat.label.toUpperCase()}</span>
+                          <span className="challenge-title">{cat.desc}</span>
                         </div>
-                        <div className={`challenge-select-dot ${selectedChallenge?.id === challenge.id ? 'active' : ''}`} />
+                        <div className={`challenge-select-dot ${selectedChallenge?.category === cat.id ? 'active' : ''}`} />
                       </div>
                     ))}
                   </div>

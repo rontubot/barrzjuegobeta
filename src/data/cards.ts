@@ -94,65 +94,71 @@ export const CHALLENGES_DECK: ChallengeCard[] = [
     id: 'challenge-p1',
     category: 'palabras',
     title: 'PALABRAS',
-    description: 'Improvisa usando las palabras de tu lado. Tu oponente usa las palabras del lado contrario.',
-    wordsTop: ['FRUTA', 'GUITARRA', 'BONDI', 'KIOSKO'],
-    wordsBottom: ['VEREDA', 'MADRUGADA', 'BARRIO', 'SUPERMERCADO']
+    description: 'Improvisá usando las 8 palabras de la carta. Presioná VARIAR para obtener 8 palabras nuevas.',
+    wordsTop: ['FRUTA', 'GUITARRA', 'BONDI', 'KIOSKO', 'VEREDA', 'MADRUGADA', 'BARRIO', 'SUPERMERCADO']
   },
   {
     id: 'challenge-p2',
     category: 'palabras',
     title: 'PALABRAS',
-    description: 'Improvisa usando las palabras de tu lado. Tu oponente usa las palabras del lado contrario.',
-    wordsTop: ['PLAYA', 'BICICLETA', 'HELADERO', 'ZAPATO'],
-    wordsBottom: ['SOMBRERO', 'TELEVISOR', 'PIZZA', 'MONTAÑA']
+    description: 'Improvisá usando las 8 palabras de la carta. Presioná VARIAR para obtener 8 palabras nuevas.',
+    wordsTop: ['PLAYA', 'BICICLETA', 'HELADERO', 'ZAPATO', 'SOMBRERO', 'TELEVISOR', 'PIZZA', 'MONTAÑA']
   },
   {
     id: 'challenge-p3',
     category: 'palabras',
     title: 'PALABRAS',
-    description: 'Improvisa usando las palabras de tu lado. Tu oponente usa las palabras del lado contrario.',
-    wordsTop: ['CÁMARA', 'LÁMPARA', 'MOCHILA', 'GUITARRA'],
-    wordsBottom: ['PERRO', 'LIBRO', 'ZAPATO', 'MONEDA']
+    description: 'Improvisá usando las 8 palabras de la carta. Presioná VARIAR para obtener 8 palabras nuevas.',
+    wordsTop: ['CÁMARA', 'LÁMPARA', 'MOCHILA', 'RELOJ', 'PERRO', 'LIBRO', 'ZAPATO', 'MONEDA']
   },
   {
     id: 'challenge-p4',
     category: 'palabras',
     title: 'PALABRAS',
-    description: 'Improvisa usando las palabras de tu lado. Tu oponente usa las palabras del lado contrario.',
-    wordsTop: ['CORRER', 'CANTAR', 'BAILAR', 'SALTAR'],
-    wordsBottom: ['VENTANA', 'GUITARRA', 'MOCHILA', 'PLANETA']
+    description: 'Improvisá usando las 8 palabras de la carta. Presioná VARIAR para obtener 8 palabras nuevas.',
+    wordsTop: ['CORRER', 'CANTAR', 'BAILAR', 'SALTAR', 'VENTANA', 'ESPEJO', 'NOCHE', 'PLANETA']
   },
   {
     id: 'challenge-p5',
     category: 'palabras',
     title: 'PALABRAS',
-    description: 'Improvisa usando las palabras de tu lado. Tu oponente usa las palabras del lado contrario.',
-    wordsTop: ['RÍO', 'VENTANA', 'SILLA', 'NUBE'],
-    wordsBottom: ['FUEGO', 'MESA', 'LUNA', 'ÁRBOL']
+    description: 'Improvisá usando las 8 palabras de la carta. Presioná VARIAR para obtener 8 palabras nuevas.',
+    wordsTop: ['RÍO', 'VENTANA', 'SILLA', 'NUBE', 'FUEGO', 'MESA', 'LUNA', 'ÁRBOL']
   },
   {
     id: 'challenge-p6',
     category: 'palabras',
     title: 'PALABRAS',
-    description: 'Improvisa usando las palabras de tu lado. Tu oponente usa las palabras del lado contrario.',
-    wordsTop: ['FARO', 'COHETE', 'TECLADO', 'GLOBO'],
-    wordsBottom: ['SELVA', 'PATINETA', 'HOSPITAL', 'CEREBRO']
+    description: 'Improvisá usando las 8 palabras de la carta. Presioná VARIAR para obtener 8 palabras nuevas.',
+    wordsTop: ['FARO', 'COHETE', 'TECLADO', 'GLOBO', 'SELVA', 'PATINETA', 'HOSPITAL', 'CEREBRO']
   },
   {
     id: 'challenge-p7',
     category: 'palabras',
     title: 'PALABRAS',
-    description: 'Improvisa usando las palabras de tu lado. Tu oponente usa las palabras del lado contrario.',
-    wordsTop: ['DRAGÓN', 'AVIÓIN', 'PARAGUAS', 'TAMBOR'],
-    wordsBottom: ['GATO', 'BICHO', 'LINTERNA', 'COCODRILO']
+    description: 'Improvisá usando las 8 palabras de la carta. Presioná VARIAR para obtener 8 palabras nuevas.',
+    wordsTop: ['DRAGÓN', 'AVIÓN', 'PARAGUAS', 'TAMBOR', 'GATO', 'BICHO', 'LINTERNA', 'COCODRILO']
   },
   {
     id: 'challenge-p8',
     category: 'palabras',
     title: 'PALABRAS',
-    description: 'Improvisa usando las palabras de tu lado. Tu oponente usa las palabras del lado contrario.',
-    wordsTop: ['SELVA', 'PATINETA', 'HOSPITAL', 'CEREBRO'],
-    wordsBottom: ['ÁRBOL', 'TELEVISOR', 'MONTAÑA', 'PIZZA']
+    description: 'Improvisá usando las 8 palabras de la carta. Presioná VARIAR para obtener 8 palabras nuevas.',
+    wordsTop: ['SELVA', 'TORNADO', 'CEMENTO', 'CEREBRO', 'ÁRBOL', 'TELEVISOR', 'MONTAÑA', 'PIZZA']
+  },
+  {
+    id: 'challenge-p9',
+    category: 'palabras',
+    title: 'PALABRAS',
+    description: 'Improvisá usando las 8 palabras de la carta. Presioná VARIAR para obtener 8 palabras nuevas.',
+    wordsTop: ['VUELO', 'CARTERA', 'SEMÁFORO', 'MEDUSA', 'TREN', 'CASCADA', 'MERCADO', 'ESTRELLA']
+  },
+  {
+    id: 'challenge-p10',
+    category: 'palabras',
+    title: 'PALABRAS',
+    description: 'Improvisá usando las 8 palabras de la carta. Presioná VARIAR para obtener 8 palabras nuevas.',
+    wordsTop: ['GRAFFITI', 'MICRÓFONO', 'CALLE', 'BARRIO', 'SUDADERA', 'ZAPATILLA', 'FREESTYLE', 'RITMO']
   },
 
   // Categoria: Tematicas

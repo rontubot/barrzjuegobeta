@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, RefreshCw, Volume2, RotateCw, Play, Pause, Square, Music, QrCode, Sparkles, User, SkipForward, Home, RotateCcw, ChevronLeft, ChevronRight, Gavel } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Volume2, Play, Pause, Square, Music, QrCode, Sparkles, User, SkipForward, Home, RotateCcw, ChevronLeft, ChevronRight, Gavel } from 'lucide-react';
 import { BEATS_DECK, CHALLENGES_DECK } from '../data/cards';
 import type { BeatCard, ChallengeCard } from '../data/cards';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -85,7 +85,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
   // Estados de animación de cartas
   const [beatFlipped, setBeatFlipped] = useState(false);
   const [challengeFlipped, setChallengeFlipped] = useState(false);
-  const [wordsRotated, setWordsRotated] = useState(false);
+
 
   // Animación de salida global
   const [isExiting, setIsExiting] = useState(false);
@@ -177,7 +177,6 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
       setTimerRunning(false);
       setTimerSeconds(90);
     }
-    setWordsRotated(false);
   }, [activeChallenge]);
 
 
@@ -579,30 +578,26 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
 
                           <div className="challenge-card-body">
                             {activeChallenge.category === 'palabras' && (
-                              <div className={`words-challenge-layout ${wordsRotated ? 'rotated-180' : ''}`}>
-                                <div className="words-side top-side">
-                                  <span className="words-direction-label">TU TURNO:</span>
-                                  <div className="words-grid">
-                                    {activeChallenge.wordsTop?.map((w, idx) => (
-                                      <span key={idx} className="word-badge pink-glow-text">{w}</span>
-                                    ))}
-                                  </div>
+                              <div className="words-challenge-layout-new">
+                                <div className="words-grid-8">
+                                  {activeChallenge.wordsTop?.map((w, idx) => (
+                                    <span key={idx} className="word-badge-8 pink-glow-text">{w}</span>
+                                  ))}
                                 </div>
-
-                                <div className="words-divider">
-                                  <button className="btn-rotate-words" onClick={() => setWordsRotated(!wordsRotated)}>
-                                    <RotateCw size={16} />
-                                    <span>GIRAR CARTA</span>
+                                <div className="words-variar-divider">
+                                  <button
+                                    className="btn-variar"
+                                    onClick={() => {
+                                      const palabrasCards = CHALLENGES_DECK.filter(c => c.category === 'palabras' && c.id !== activeChallenge.id);
+                                      if (palabrasCards.length > 0) {
+                                        const next = palabrasCards[Math.floor(Math.random() * palabrasCards.length)];
+                                        setActiveChallenge(next);
+                                      }
+                                    }}
+                                  >
+                                    <RefreshCw size={14} />
+                                    <span>VARIAR</span>
                                   </button>
-                                </div>
-
-                                <div className="words-side bottom-side">
-                                  <span className="words-direction-label">RIVAL (OPONENTE):</span>
-                                  <div className="words-grid">
-                                    {activeChallenge.wordsBottom?.map((w, idx) => (
-                                      <span key={idx} className="word-badge teal-glow-text">{w}</span>
-                                    ))}
-                                  </div>
                                 </div>
                               </div>
                             )}
