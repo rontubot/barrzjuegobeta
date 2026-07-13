@@ -33,7 +33,6 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
     'cypher',
     'terminaciones',
     'beatbox',
-    '1v1',
     'sacrificio'
   ]);
 
@@ -43,6 +42,8 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
   const [selectedChallenge, setSelectedChallenge] = useState<ChallengeCard | null>(null);
   const [previewingBeatId, setPreviewingBeatId] = useState<string | null>(null);
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [showThemesMosaic, setShowThemesMosaic] = useState(false);
+  const [expandedThemeCard, setExpandedThemeCard] = useState<ChallengeCard | null>(null);
 
   // Cleanup audio preview when screen changes or sub-mode changes
   useEffect(() => {
@@ -117,8 +118,7 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
     { id: 'tematicas', label: 'Temáticas', desc: 'Desarrollar rimas sobre un tema profundo' },
     { id: 'cypher', label: 'Cypher', desc: 'Ronda libre en equipo compartiendo micro' },
     { id: 'terminaciones', label: 'Terminaciones', desc: 'Patrones obligatorios como -ER o -AR' },
-    { id: 'beatbox', label: 'Beatbox', desc: 'Base humana con cronómetro de 90 segundos' },
-    { id: '1v1', label: 'Batalla 1v1', desc: 'Duelo conceptual directo entre rivales' },
+    { id: 'beatbox', label: 'Beatbox', desc: 'Base humana con cronómetro de 60 segundos' },
     { id: 'sacrificio', label: 'El Sacrificio', desc: 'Ronda final de máxima entrega y energía' }
   ];
 
@@ -203,7 +203,7 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
   const tutorialSteps = [
     {
       title: "Navegación e Interacción",
-      desc: "Bienvenido al laboratorio de freestyle urbana. Navegá por los diferentes mazos de cartas, desafíos dinámicos y bases instrumentales con cronómetro de rimas incorporado y soporte en tiempo real.",
+      desc: "Bienvenido al laboratorio de freestyle. Navegá por los diferentes mazos de cartas, desafíos dinámicos y bases instrumentales con cronómetro de rimas incorporado y soporte en tiempo real.",
       icon: <Compass size={40} className="teal-text" />
     },
     {
@@ -370,7 +370,7 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
       {step === 'mode_selection' && (
         <div className="setup-card glass-panel glow-pink fade-in">
           <h2 className="font-graffiti text-glow-pink text-center mb-20">SELECCIONAR MODO</h2>
-          <p className="step-sub text-center">Elegí la modalidad de improvisación urbana.</p>
+          <p className="step-sub text-center">Elegí la modalidad de improvisación.</p>
 
           <div className="modes-stack">
             <button 
@@ -393,31 +393,13 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
               </div>
               <p>Entrená en solitario con bases y desafíos para perfeccionar tus patrones. Admite flujo automático o selección a mano.</p>
             </button>
-
-            <button 
-              className="mode-option-card glow-pink"
-              onClick={() => {
-                onNext('game', {
-                  mode: 'multiplayer',
-                  players: ['Competidor 1', 'Competidor 2'],
-                  avatars: { 'Competidor 1': '🎤', 'Competidor 2': '🔥' },
-                  roundsCount: 4,
-                  selectedCategories: ['palabras', 'tematicas', '1v1']
-                });
-              }}
-            >
-              <div className="mode-option-header">
-                <h3>DUELO RÁPIDO (1v1)</h3>
-              </div>
-              <p>Iniciá un cara a cara de 2 jugadores de forma rápida con configuración estándar de combate.</p>
-            </button>
           </div>
         </div>
       )}
 
       {/* ── SETUP INDIVIDUAL ─────────────────────────────────────────── */}
       {step === 'setup_individual' && (() => {
-        const availableCategories = categoriesList.filter(c => c.id !== '1v1');
+        const availableCategories = categoriesList;
         const canStart = individualSubMode === 'random' || (selectedBeat !== null && selectedChallenge !== null);
         
         return (
@@ -516,10 +498,14 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
                         key={cat.id}
                         className={`challenge-item ${selectedChallenge?.category === cat.id ? 'selected' : ''}`}
                         onClick={() => {
-                          const categoryCards = CHALLENGES_DECK.filter(c => c.category === cat.id);
-                          if (categoryCards.length > 0) {
-                            const randomCard = categoryCards[Math.floor(Math.random() * categoryCards.length)];
-                            setSelectedChallenge(randomCard);
+                          if (cat.id === 'tematicas') {
+                            setShowThemesMosaic(true);
+                          } else {
+                            const categoryCards = CHALLENGES_DECK.filter(c => c.category === cat.id);
+                            if (categoryCards.length > 0) {
+                              const randomCard = categoryCards[Math.floor(Math.random() * categoryCards.length)];
+                              setSelectedChallenge(randomCard);
+                            }
                           }
                         }}
                       >
@@ -569,6 +555,70 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
                 )}
               </button>
             </div>
+
+            {/* MOSAICO DE TEMÁTICAS MODAL */}
+            {showThemesMosaic && (
+              <div className="themes-mosaic-overlay fade-in">
+                <div className="themes-mosaic-container glass-panel glow-pink">
+                  <div className="themes-mosaic-header">
+                    <h2 className="font-graffiti text-glow-pink">SELECCIONAR TEMÁTICA</h2>
+                    <p className="themes-mosaic-subtitle font-base">Hacé click en una temática para expandirla y leerla antes de confirmar.</p>
+                  </div>
+
+                  <div className="themes-mosaic-grid">
+                    {CHALLENGES_DECK.filter(c => c.category === 'tematicas').map((card) => (
+                      <div 
+                        key={card.id} 
+                        className="theme-mosaic-card glow-pink" 
+                        onClick={() => setExpandedThemeCard(card)}
+                      >
+                        <h4 className="theme-card-title">{card.title}</h4>
+                        <div className="theme-card-preview font-base">{card.highlightText || 'Temática'}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <button className="btn-close-mosaic font-base" onClick={() => setShowThemesMosaic(false)}>
+                    CERRAR
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* CARD EXPANDED FULLSCREEN MODAL */}
+            {expandedThemeCard && (
+              <div className="theme-expanded-overlay fade-in">
+                <div className="theme-expanded-card glass-panel glow-pink">
+                  <span className="expanded-card-badge">TEMÁTICA</span>
+                  <h2 className="expanded-card-title">{expandedThemeCard.title}</h2>
+                  <p className="expanded-card-desc">{expandedThemeCard.description}</p>
+                  {expandedThemeCard.highlightText && (
+                    <div className="expanded-card-highlight font-base">
+                      {expandedThemeCard.highlightText}
+                    </div>
+                  )}
+
+                  <div className="expanded-card-actions">
+                    <button 
+                      className="btn-expanded-confirm font-base"
+                      onClick={() => {
+                        setSelectedChallenge(expandedThemeCard);
+                        setExpandedThemeCard(null);
+                        setShowThemesMosaic(false);
+                      }}
+                    >
+                      CONFIRMAR SELECCIÓN
+                    </button>
+                    <button 
+                      className="btn-expanded-back font-base"
+                      onClick={() => setExpandedThemeCard(null)}
+                    >
+                      VOLVER AL MOSAICO
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         );
       })()}

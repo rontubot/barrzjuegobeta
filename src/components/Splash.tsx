@@ -73,70 +73,62 @@ export const Splash: React.FC<SplashProps> = ({ onStartGame, fromGame = false })
           <img src="/Barrzjuego.png" alt="BARRZJUEGO" className="logo-img" />
         </h1>
         <div className="logo-badge">FREESTYLE CARD GAME</div>
-        <p className="logo-description">El juego definitivo de improvisación urbana, rimas y beats.</p>
+        <p className="logo-description">El juego definitivo de improvisación, rimas y beats.</p>
       </div>
 
       {/* Menú de Botones Principales */}
       {!showRules && (
-        <div className={`menu-section ${isLaunching ? 'launching' : ''} ${fromGame ? 'return-from-game' : 'fade-in'}`}>
-          <button
-            className="btn-play pulse-pink-anim"
-            onClick={() => {
-              setIsLaunching(true);
-              setTimeout(() => onStartGame(), 700);
-            }}
-            disabled={isLaunching}
-          >
-            <Play size={24} fill="currentColor" />
-            {isLaunching ? 'CARGANDO...' : 'JUGAR AHORA'}
+        <div className="menu-buttons-container">
+          <button className="btn-play-game pulse-pink-anim" onClick={() => { setIsLaunching(true); setTimeout(() => onStartGame(), 700); }}>
+            <Play size={20} fill="currentColor" className="mr-8" />
+            <span>JUGAR</span>
           </button>
           
-          <button className="btn-menu-option" onClick={() => setShowRules(true)} disabled={isLaunching}>
-            <BookOpen size={20} />
-            Instrucciones y Consejos
+          <button className="btn-rules" onClick={() => setShowRules(true)}>
+            <BookOpen size={18} className="mr-8" />
+            <span>REGLAS DE JUEGO</span>
           </button>
         </div>
       )}
 
-      {/* Panel de Instrucciones */}
+      {/* Panel de Reglas */}
       {showRules && (
-        <div className="overlay-panel glass-panel glow-pink fade-in">
-          <div className="panel-header">
-            <BookOpen className="header-icon pink-text" size={24} />
-            <h2>CÓMO JUGAR</h2>
-          </div>
-          
-          <div className="panel-content scrollable">
-            <div className="rule-item">
-              <span className="rule-num">1</span>
-              <div>
-                <h3>Dos Mazos de Combate</h3>
-                <p>El juego se compone de un mazo verde de <strong>Beats</strong> y un mazo rosa de <strong>Desafíos</strong>.</p>
-              </div>
-            </div>
+        <div className="rules-panel-overlay fade-in">
+          <div className="rules-panel-content glass-panel">
+            <button className="btn-close-rules" onClick={() => setShowRules(false)}>✕</button>
+            <h2 className="font-graffiti text-glow-pink mb-20">REGLAS DE BARRZ</h2>
             
-            <div className="rule-item">
-              <span className="rule-num">2</span>
-              <div>
-                <h3>Establece el Ritmo (Beat)</h3>
-                <p>En tu turno, saca una carta de Beat. Verás el nombre, los BPM (ritmo) y un enlace a Spotify. Haz clic en la carta para abrir Spotify y reproducir el beat sin que se pause la app.</p>
+            <div className="rules-scrollable">
+              <div className="rule-item">
+                <span className="rule-num">1</span>
+                <div>
+                  <h3>El Concepto</h3>
+                  <p>En tu turno, saca una carta de Beat. Verás el nombre, los BPM (ritmo) y un enlace a Spotify. Haz clic en la carta para abrir Spotify y reproducir el beat sin que se pause la app.</p>
+                </div>
               </div>
-            </div>
-            
-            <div className="rule-item">
-              <span className="rule-num">3</span>
-              <div>
-                <h3>Acepta el Desafío</h3>
-                <p>Saca una carta de Desafío. El juego se divide en 6 modalidades dinámicas:</p>
-                <ul className="challenges-list">
-                  <li><strong>Palabras:</strong> Rima usando las 4 palabras. Si juegas 1v1, pulsa "Rotar" para que tu rival lea cómodamente sus palabras invertidas.</li>
-                  <li><strong>Temáticas:</strong> Desarrolla tus rimas en base a un tema profundo (Sueños, Miedos, Apocalipsis).</li>
-                  <li><strong>Terminaciones:</strong> Patrones obligatorios (ej. terminar en -ER o -AR).</li>
-                  <li><strong>Beatbox:</strong> Saca tu caja de ritmos humana. Un compañero hace la base mientras corre el cronómetro integrado de 90 segundos.</li>
-                  <li><strong>1v1 / Cypher:</strong> Batallas directas y rondas en equipo 4x4.</li>
-                </ul>
+
+              <div className="rule-item">
+                <span className="rule-num">2</span>
+                <div>
+                  <h3>Modos de Juego</h3>
+                  <p>Puedes jugar en <strong>Modo Solo</strong> para practicar, o en <strong>Multijugador</strong> para competir con amigos acumulando puntos.</p>
+                </div>
               </div>
-            </div>
+              
+              <div className="rule-item">
+                <span className="rule-num">3</span>
+                <div>
+                  <h3>Acepta el Desafío</h3>
+                  <p>Saca una carta de Desafío. El juego se divide en 6 modalidades dinámicas:</p>
+                  <ul className="challenges-list">
+                    <li><strong>Palabras:</strong> Rima usando las palabras. Pulsa "Rotar" para que el otro freestyler lea cómodamente sus palabras invertidas.</li>
+                    <li><strong>Temáticas:</strong> Desarrolla tus rimas en base a un tema profundo (Sueños, Miedos, Apocalipsis).</li>
+                    <li><strong>Terminaciones:</strong> Patrones obligatorios (ej. terminar en -ER o -AR).</li>
+                    <li><strong>Beatbox:</strong> Saca tu caja de ritmos humana. Un compañero hace la base mientras corre el cronómetro integrado de 60 segundos.</li>
+                    <li><strong>Cypher:</strong> Rondas en equipo en formato 4x4 continuo.</li>
+                  </ul>
+                </div>
+              </div>
 
             <div className="rule-item">
               <span className="rule-num">4</span>
@@ -151,7 +143,8 @@ export const Splash: React.FC<SplashProps> = ({ onStartGame, fromGame = false })
             Volver al Menú
           </button>
         </div>
-      )}
+      </div>
+    )}
 
       
       {/* Footer corporativo / informativo */}

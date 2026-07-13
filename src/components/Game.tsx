@@ -42,7 +42,6 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
     'cypher',
     'terminaciones',
     'beatbox',
-    '1v1',
     'sacrificio'
   ];
   const startingPlayer = gameSettings?.startingPlayer || playerNames[0];
@@ -62,9 +61,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
     return initialScores;
   });
 
-  // Filtrar cartas de desafíos por categorías seleccionadas
-  const filteredChallenges = CHALLENGES_DECK.filter(card => categories.includes(card.category));
-  const availableChallenges = filteredChallenges.length > 0 ? filteredChallenges : CHALLENGES_DECK;
+
 
   // Estados de sub-pantallas del juego: 'ready' | 'playing' | 'scoring' | 'replica_announcement' | 'game_over'
   const [subState, setSubState] = useState<'ready' | 'playing' | 'scoring' | 'replica_announcement' | 'game_over'>(
@@ -84,6 +81,11 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
   // Estados para Réplicas (Desempate)
   const [isReplicaActive, setIsReplicaActive] = useState(false);
   const [replicaPlayers, setReplicaPlayers] = useState<string[]>([]);
+
+  // Filtrar cartas de desafíos por categorías seleccionadas (en réplica forzar palabras y tematicas)
+  const activeCategoriesForDraw = isReplicaActive ? ['palabras', 'tematicas'] : categories;
+  const filteredChallenges = CHALLENGES_DECK.filter(card => activeCategoriesForDraw.includes(card.category));
+  const availableChallenges = filteredChallenges.length > 0 ? filteredChallenges : CHALLENGES_DECK;
 
   // Cartas activas
   const [activeBeat, setActiveBeat] = useState<BeatCard | null>(() => {
@@ -118,7 +120,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   // Temporizador para desafíos
-  const [timerSeconds, setTimerSeconds] = useState(90);
+  const [timerSeconds, setTimerSeconds] = useState(60);
   const [timerRunning, setTimerRunning] = useState(false);
   const timerRef = useRef<any>(null);
 
@@ -149,7 +151,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
     if (spotifyPlaying && subState === 'playing') {
       interval = setInterval(() => {
         setSpotifyProgress(prev => {
-          if (prev >= 90) return 0;
+          if (prev >= 60) return 0;
           return prev + 1;
         });
       }, 1000);
@@ -192,11 +194,11 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
   // Restablecer tiempo al cambiar de carta de desafío
   useEffect(() => {
     if (activeChallenge?.timeLimit) {
-      setTimerSeconds(activeChallenge.timeLimit);
+      setTimerSeconds(Math.min(activeChallenge.timeLimit, 60));
       setTimerRunning(false);
     } else {
       setTimerRunning(false);
-      setTimerSeconds(90);
+      setTimerSeconds(60);
     }
   }, [activeChallenge]);
 
@@ -295,7 +297,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
       } else {
         // En custom, mantenemos las cartas actuales en pantalla
         // simplemente reiniciamos el timer
-        setTimerSeconds(activeChallenge?.timeLimit || 90);
+        setTimerSeconds(activeChallenge?.timeLimit ? Math.min(activeChallenge.timeLimit, 60) : 60);
       }
       return;
     }
@@ -396,7 +398,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
     setSelectedBeatForTurn(null);
     setSelectedChallengeForTurn(null);
     setTimerRunning(false);
-    setTimerSeconds(90);
+    setTimerSeconds(60);
     setBeatFlipped(false);
     setChallengeFlipped(false);
     setSubState('ready');
@@ -411,7 +413,29 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
   const pauseTimer = () => setTimerRunning(false);
   const resetTimer = () => {
     setTimerRunning(false);
-    setTimerSeconds(activeChallenge?.timeLimit || 90);
+    setTimerSeconds(activeChallenge?.timeLimit ? Math.min(activeChallenge.timeLimit, 60) : 60);
+  };
+
+  const renderStars = (count: number) => {
+    return (
+      <div className="star-rating-display">
+        {[1, 2, 3, 4].map((star) => (
+          <span key={star} className={`star-item ${star <= count ? 'filled' : 'empty'}`}>
+            ★
+          </span>
+        ))}
+      </div>
+    );
+  };
+
+  const changeChallengeWithFlip = (newChallenge: ChallengeCard) => {
+    setChallengeFlipped(false);
+    setTimeout(() => {
+      setActiveChallenge(newChallenge);
+      setTimeout(() => {
+        setChallengeFlipped(true);
+      }, 50);
+    }, 300);
   };
 
   const bpmPulseDuration = activeBeat ? 60 / activeBeat.bpm : 0.67;
@@ -636,12 +660,12 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                                       const palabrasCards = CHALLENGES_DECK.filter(c => c.category === 'palabras' && c.id !== activeChallenge.id);
                                       if (palabrasCards.length > 0) {
                                         const next = palabrasCards[Math.floor(Math.random() * palabrasCards.length)];
-                                        setActiveChallenge(next);
+                                        changeChallengeWithFlip(next);
                                       }
                                     }}
                                   >
                                     <RefreshCw size={14} />
-                                    <span>VARIAR</span>
+                                    <span>Más palabras</span>
                                   </button>
                                 </div>
                               </div>
@@ -787,10 +811,10 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                                   <div className="spotify-progress-bar-wrap">
                                     <div 
                                       className="spotify-progress-bar-fill" 
-                                      style={{ width: `${(spotifyProgress / 90) * 100}%` }}
+                                      style={{ width: `${(spotifyProgress / 60) * 100}%` }}
                                     ></div>
                                   </div>
-                                  <span className="spotify-time font-base">1:30</span>
+                                  <span className="spotify-time font-base">1:00</span>
                                 </div>
 
                                 <div className="spotify-controls">
@@ -906,6 +930,10 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
         {subState === 'scoring' && (
           <div className="scoring-screen-content glass-panel glow-pink text-center fade-in">
 
+            <div className="scoring-icon-wrapper">
+              <Gavel size={32} className="pink-text" />
+            </div>
+
             <span className="scoring-tag">VOTACIÓN DE JUGADORES</span>
             <h2 className="scoring-title font-graffiti">TURNO DE VOTAR</h2>
 
@@ -930,10 +958,10 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
 
               <div className="voting-options-list">
                 {[
-                  { value: 1, label: '👎 Flojo - Falta práctica', pts: '1 pt' },
-                  { value: 2, label: '😐 Regular - Se trabó un poco', pts: '2 pts' },
-                  { value: 3, label: '🔥 Bueno - Buenas métricas', pts: '3 pts' },
-                  { value: 4, label: '👑 Excelente - ¡Rima épica!', pts: '4 pts' }
+                  { value: 1, emoji: '👎', label: 'Flojo', desc: 'Falta práctica', pts: '1 pt' },
+                  { value: 2, emoji: '😐', label: 'Regular', desc: 'Se trabó un poco', pts: '2 pts' },
+                  { value: 3, emoji: '🔥', label: 'Bueno', desc: 'Buenas métricas', pts: '3 pts' },
+                  { value: 4, emoji: '👑', label: 'Excelente', desc: '¡Rima épica!', pts: '4 pts' }
                 ].map((opt) => (
                   <button
                     key={opt.value}
@@ -941,7 +969,14 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                     className={`voting-option-btn ${selectedRating === opt.value ? 'selected' : ''}`}
                     onClick={() => setSelectedRating(opt.value)}
                   >
-                    <span>{opt.label}</span>
+                    <div className="voting-option-left">
+                      <span className="voting-option-number">{opt.value}</span>
+                      <span className="voting-option-emoji">{opt.emoji}</span>
+                    </div>
+                    <div className="voting-option-center">
+                      <span className="voting-option-label">{opt.label} - {opt.desc}</span>
+                      {renderStars(opt.value)}
+                    </div>
                     <span className="voting-option-pts">{opt.pts}</span>
                   </button>
                 ))}
@@ -1007,6 +1042,9 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
         {/* ── 5. GAME OVER (PODIO Y RESULTADOS) ───────────────────────────── */}
         {subState === 'game_over' && (
           <div className="gameover-screen-content glass-panel glow-pink text-center fade-in">
+            <div className="gameover-logo-container">
+              <img src="/Barrzjuego.png" alt="BARRZ" className="gameover-logo-img" />
+            </div>
             <h1 className="gameover-main-title font-accent text-glow-pink">FIN DE LA BATALLA</h1>
             <p className="gameover-subtitle">Tabla final de puntuaciones y campeones.</p>
 

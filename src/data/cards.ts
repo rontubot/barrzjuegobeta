@@ -9,7 +9,7 @@ export interface BeatCard {
 
 export interface ChallengeCard {
   id: string;
-  category: 'palabras' | 'tematicas' | 'cypher' | 'terminaciones' | 'beatbox' | '1v1' | 'sacrificio';
+  category: 'palabras' | 'tematicas' | 'cypher' | 'terminaciones' | 'beatbox' | 'sacrificio';
   title: string;
   description: string;
   // Para la categoría "palabras", guardamos la lista de 4 palabras arriba y 4 palabras abajo
@@ -94,70 +94,70 @@ export const CHALLENGES_DECK: ChallengeCard[] = [
     id: 'challenge-p1',
     category: 'palabras',
     title: 'PALABRAS',
-    description: 'Improvisá usando las 8 palabras de la carta. Presioná VARIAR para obtener 8 palabras nuevas.',
+    description: "Improvisá usando las 8 palabras de la carta. Presioná 'Más palabras' para obtener 8 palabras nuevas.",
     wordsTop: ['FRUTA', 'GUITARRA', 'BONDI', 'KIOSKO', 'VEREDA', 'MADRUGADA', 'BARRIO', 'SUPERMERCADO']
   },
   {
     id: 'challenge-p2',
     category: 'palabras',
     title: 'PALABRAS',
-    description: 'Improvisá usando las 8 palabras de la carta. Presioná VARIAR para obtener 8 palabras nuevas.',
+    description: "Improvisá usando las 8 palabras de la carta. Presioná 'Más palabras' para obtener 8 palabras nuevas.",
     wordsTop: ['PLAYA', 'BICICLETA', 'HELADERO', 'ZAPATO', 'SOMBRERO', 'TELEVISOR', 'PIZZA', 'MONTAÑA']
   },
   {
     id: 'challenge-p3',
     category: 'palabras',
     title: 'PALABRAS',
-    description: 'Improvisá usando las 8 palabras de la carta. Presioná VARIAR para obtener 8 palabras nuevas.',
+    description: "Improvisá usando las 8 palabras de la carta. Presioná 'Más palabras' para obtener 8 palabras nuevas.",
     wordsTop: ['CÁMARA', 'LÁMPARA', 'MOCHILA', 'RELOJ', 'PERRO', 'LIBRO', 'ZAPATO', 'MONEDA']
   },
   {
     id: 'challenge-p4',
     category: 'palabras',
     title: 'PALABRAS',
-    description: 'Improvisá usando las 8 palabras de la carta. Presioná VARIAR para obtener 8 palabras nuevas.',
+    description: "Improvisá usando las 8 palabras de la carta. Presioná 'Más palabras' para obtener 8 palabras nuevas.",
     wordsTop: ['CORRER', 'CANTAR', 'BAILAR', 'SALTAR', 'VENTANA', 'ESPEJO', 'NOCHE', 'PLANETA']
   },
   {
     id: 'challenge-p5',
     category: 'palabras',
     title: 'PALABRAS',
-    description: 'Improvisá usando las 8 palabras de la carta. Presioná VARIAR para obtener 8 palabras nuevas.',
+    description: "Improvisá usando las 8 palabras de la carta. Presioná 'Más palabras' para obtener 8 palabras nuevas.",
     wordsTop: ['RÍO', 'VENTANA', 'SILLA', 'NUBE', 'FUEGO', 'MESA', 'LUNA', 'ÁRBOL']
   },
   {
     id: 'challenge-p6',
     category: 'palabras',
     title: 'PALABRAS',
-    description: 'Improvisá usando las 8 palabras de la carta. Presioná VARIAR para obtener 8 palabras nuevas.',
+    description: "Improvisá usando las 8 palabras de la carta. Presioná 'Más palabras' para obtener 8 palabras nuevas.",
     wordsTop: ['FARO', 'COHETE', 'TECLADO', 'GLOBO', 'SELVA', 'PATINETA', 'HOSPITAL', 'CEREBRO']
   },
   {
     id: 'challenge-p7',
     category: 'palabras',
     title: 'PALABRAS',
-    description: 'Improvisá usando las 8 palabras de la carta. Presioná VARIAR para obtener 8 palabras nuevas.',
+    description: "Improvisá usando las 8 palabras de la carta. Presioná 'Más palabras' para obtener 8 palabras nuevas.",
     wordsTop: ['DRAGÓN', 'AVIÓN', 'PARAGUAS', 'TAMBOR', 'GATO', 'BICHO', 'LINTERNA', 'COCODRILO']
   },
   {
     id: 'challenge-p8',
     category: 'palabras',
     title: 'PALABRAS',
-    description: 'Improvisá usando las 8 palabras de la carta. Presioná VARIAR para obtener 8 palabras nuevas.',
+    description: "Improvisá usando las 8 palabras de la carta. Presioná 'Más palabras' para obtener 8 palabras nuevas.",
     wordsTop: ['SELVA', 'TORNADO', 'CEMENTO', 'CEREBRO', 'ÁRBOL', 'TELEVISOR', 'MONTAÑA', 'PIZZA']
   },
   {
     id: 'challenge-p9',
     category: 'palabras',
     title: 'PALABRAS',
-    description: 'Improvisá usando las 8 palabras de la carta. Presioná VARIAR para obtener 8 palabras nuevas.',
+    description: "Improvisá usando las 8 palabras de la carta. Presioná 'Más palabras' para obtener 8 palabras nuevas.",
     wordsTop: ['VUELO', 'CARTERA', 'SEMÁFORO', 'MEDUSA', 'TREN', 'CASCADA', 'MERCADO', 'ESTRELLA']
   },
   {
     id: 'challenge-p10',
     category: 'palabras',
     title: 'PALABRAS',
-    description: 'Improvisá usando las 8 palabras de la carta. Presioná VARIAR para obtener 8 palabras nuevas.',
+    description: "Improvisá usando las 8 palabras de la carta. Presioná 'Más palabras' para obtener 8 palabras nuevas.",
     wordsTop: ['GRAFFITI', 'MICRÓFONO', 'CALLE', 'BARRIO', 'SUDADERA', 'ZAPATILLA', 'FREESTYLE', 'RITMO']
   },
 
@@ -196,6 +196,13 @@ export const CHALLENGES_DECK: ChallengeCard[] = [
     title: 'LA RUTINA',
     description: '¿CUÁL SERÍA TU RUTINA IDEAL?',
     highlightText: 'DÍA A DÍA'
+  },
+  {
+    id: 'challenge-t6',
+    category: 'tematicas',
+    title: '1 MIN LIBRE',
+    description: 'Improvisación completamente libre.',
+    highlightText: '1 MIN LIBRE'
   },
 
   // Categoria: Cypher
@@ -251,7 +258,7 @@ export const CHALLENGES_DECK: ChallengeCard[] = [
     title: 'BEATBOX',
     description: 'Elige a un compañero para que haga beatbox como base instrumental durante la ronda. ¡Usa el cronómetro!',
     highlightText: 'VIAJE',
-    timeLimit: 90
+    timeLimit: 60
   },
   {
     id: 'challenge-b2',
@@ -259,23 +266,7 @@ export const CHALLENGES_DECK: ChallengeCard[] = [
     title: 'BEATBOX',
     description: 'Elige a un compañero para que haga beatbox como base instrumental durante la ronda. ¡Usa el cronómetro!',
     highlightText: 'CARRERA',
-    timeLimit: 90
-  },
-
-  // Categoria: 1v1
-  {
-    id: 'challenge-1v1-1',
-    category: '1v1',
-    title: 'BATALLA 1V1',
-    description: 'Enfréntate cara a cara en un duelo conceptual.',
-    highlightText: 'LUZ VS OSCURIDAD'
-  },
-  {
-    id: 'challenge-1v1-2',
-    category: '1v1',
-    title: 'BATALLA 1V1',
-    description: 'Enfréntate cara a cara en un duelo conceptual.',
-    highlightText: 'AGUA VS FUEGO'
+    timeLimit: 60
   },
 
   // Categoria: El Sacrificio

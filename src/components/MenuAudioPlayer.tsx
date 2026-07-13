@@ -25,6 +25,10 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
   );
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const isPlayingRef = useRef(isPlaying);
+  const setIsPlayingWithRef = (val: boolean) => {
+    setIsPlaying(val);
+    isPlayingRef.current = val;
+  };
   useEffect(() => {
     isPlayingRef.current = isPlaying;
   }, [isPlaying]);
@@ -105,7 +109,7 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
       }
 
       setHistory(prev => [...prev, currentIdx]);
-      setIsPlaying(true);
+      setIsPlayingWithRef(true);
       setCurrentTrackIndex(nextIndex);
     };
 
@@ -313,7 +317,7 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
         clearInterval(fadeIntervalRef.current);
         fadeIntervalRef.current = null;
         // Al finalizar el fade out, cambiamos el track (esto disparará el useEffect con su respectivo fade-in)
-        setIsPlaying(true);
+        setIsPlayingWithRef(true);
         setCurrentTrackIndex(nextIndex);
       }
     }, stepTime);
@@ -372,11 +376,11 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
 
     if (isPlaying) {
       audioRef.current.pause();
-      setIsPlaying(false);
+      setIsPlayingWithRef(false);
     } else {
       audioRef.current.volume = isMuted ? 0 : volume;
       audioRef.current.play().catch(e => console.log(e));
-      setIsPlaying(true);
+      setIsPlayingWithRef(true);
       triggerBanner();
     }
   };

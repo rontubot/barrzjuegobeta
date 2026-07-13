@@ -214,7 +214,7 @@ export const UserProfilePanel: React.FC<UserProfilePanelProps> = ({ gameState, u
                     <span className="history-time-ago font-base">Ayer</span>
                   </div>
                   <div className="history-card-body">
-                    <span className="history-battle-type">Duelo 1v1 vs Bot</span>
+                    <span className="history-battle-type">Duelo Individual vs Bot</span>
                     <span className="history-score-val font-base">+120 Pts</span>
                   </div>
                 </div>
