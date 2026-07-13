@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Users, Play, Pause, ArrowLeft, Plus, Minus, UserPlus, Check, RefreshCw, Volume2, Sparkles, BookOpen, Compass, Radio, ArrowRight } from 'lucide-react';
+import { Users, User, Play, Pause, ArrowLeft, Plus, Minus, UserPlus, Check, RefreshCw, Volume2, Sparkles, BookOpen, Compass, Radio, ArrowRight } from 'lucide-react';
 import { BEATS_DECK, CHALLENGES_DECK } from '../data/cards';
 import type { BeatCard, ChallengeCard } from '../data/cards';
 import './GameSetup.css';
@@ -381,7 +381,7 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
                 <Users size={20} className="pink-text" />
                 <h3>Multijugador</h3>
               </div>
-              <p>Competencia en equipo o 1v1 con registro de nombres, conteo de rondas, sorteo inicial y tabla de puntuaciones.</p>
+              <p>Competencia en equipo con registro de nombres, conteo de rondas, sorteo inicial y tabla de puntuaciones.</p>
             </button>
 
             <button 
@@ -389,7 +389,8 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
               onClick={() => onNext('setup_individual')}
             >
               <div className="mode-option-header">
-                <h3>MODO INDIVIDUAL</h3>
+                <User size={20} className="pink-text" />
+                <h3>Jugar Solo</h3>
               </div>
               <p>Entrená en solitario con bases y desafíos para perfeccionar tus patrones. Admite flujo automático o selección a mano.</p>
             </button>
