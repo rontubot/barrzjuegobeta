@@ -87,23 +87,12 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
   const currentTrack = SOUNDTRACKS[currentTrackIndex];
   const volumePercentage = (isMuted ? 0 : volume) * 100;
 
-  const playPromiseRef = useRef<Promise<void> | null>(null);
-
   const safePlay = () => {
     if (!audioRef.current) return;
-    if (playPromiseRef.current) return;
-
     try {
-      const p = audioRef.current.play();
-      if (p !== undefined) {
-        playPromiseRef.current = p;
-        p.then(() => {
-          playPromiseRef.current = null;
-        }).catch((err) => {
-          playPromiseRef.current = null;
-          console.log("SafePlay error:", err);
-        });
-      }
+      audioRef.current.play().catch((err) => {
+        console.log("SafePlay error:", err);
+      });
     } catch (e) {
       console.log("SafePlay execution error:", e);
     }
@@ -111,21 +100,10 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
 
   const safePause = () => {
     if (!audioRef.current) return;
-    
-    if (playPromiseRef.current) {
-      playPromiseRef.current
-        .then(() => {
-          audioRef.current?.pause();
-        })
-        .catch(() => {
-          audioRef.current?.pause();
-        });
-    } else {
-      try {
-        audioRef.current.pause();
-      } catch (e) {
-        console.log("SafePause error:", e);
-      }
+    try {
+      audioRef.current.pause();
+    } catch (e) {
+      console.log("SafePause error:", e);
     }
   };
 
@@ -202,13 +180,10 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
     if (!audioRef.current) return;
 
     audioRef.current.volume = 0; // Iniciar en silencio
-    if (playPromiseRef.current) return;
 
     const p = audioRef.current.play();
     if (p !== undefined) {
-      playPromiseRef.current = p;
       p.then(() => {
-        playPromiseRef.current = null;
         // Si la reproducción es exitosa, iniciar fade-in
         if (fadeIntervalRef.current) {
           clearInterval(fadeIntervalRef.current);
@@ -235,7 +210,6 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
           }
         }, stepTime);
       }).catch(() => {
-        playPromiseRef.current = null;
         console.log("Autoplay bloqueado temporalmente por el navegador. Esperando interacción.");
         
         // Listener para desbloquear audio tras la primera interacción
@@ -333,12 +307,6 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
         }, stepTime);
       }
     }
-
-    return () => {
-      if (fadeIntervalRef.current) {
-        clearInterval(fadeIntervalRef.current);
-      }
-    };
   }, [gameState, isPlaying, volume, isMuted]);
 
   // Cambiar canción aplicando un fade-out suave antes de pasar a la siguiente
