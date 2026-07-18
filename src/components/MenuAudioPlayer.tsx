@@ -66,6 +66,23 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
   const bannerTimeoutRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const prevGameStateRef = useRef<string>(gameState);
+
+  // Inicializar el elemento de audio una única vez al montar la aplicación
+  useEffect(() => {
+    const audio = new Audio();
+    audioRef.current = audio;
+
+    return () => {
+      if (audioRef.current) {
+        try {
+          audioRef.current.pause();
+          audioRef.current.src = "";
+        } catch (e) {
+          console.log("Error al limpiar audio:", e);
+        }
+      }
+    };
+  }, []);
   
   const currentTrack = SOUNDTRACKS[currentTrackIndex];
   const volumePercentage = (isMuted ? 0 : volume) * 100;
@@ -112,20 +129,20 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
     }
   };
 
-  // 1. Inicializar y manejar cambios de pista
+  // 1. Manejar cambios de pista reutilizando el mismo elemento
   useEffect(() => {
-    // Si ya existe un audio, lo pausamos
-    if (audioRef.current) {
-      safePause();
-    }
+    if (!audioRef.current) return;
 
-    const audio = new Audio(currentTrack.url);
-    audio.loop = false;
-    audio.volume = 0; // Iniciar en 0 para fundido de entrada (fade-in)
-    audioRef.current = audio;
+    // Si ya existe un audio reproduciéndose, lo pausamos
+    safePause();
+
+    // Cambiar la fuente del elemento de audio existente
+    audioRef.current.src = currentTrack.url;
+    audioRef.current.loop = false;
+    audioRef.current.volume = 0; // Iniciar en 0 para fade-in
 
     // Al finalizar la pista, reproducir otra sin repetir en la misma sesión
-    audio.onended = () => {
+    audioRef.current.onended = () => {
       const currentIdx = currentTrackIndexRef.current;
       const pool = playedPoolRef.current;
       
@@ -164,7 +181,6 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
     triggerBanner();
 
     return () => {
-      audio.pause();
       if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
       if (bannerTimeoutRef.current) clearTimeout(bannerTimeoutRef.current);
     };
