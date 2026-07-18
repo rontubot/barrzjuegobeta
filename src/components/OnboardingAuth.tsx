@@ -149,6 +149,21 @@ export const OnboardingAuth: React.FC<OnboardingAuthProps> = ({ step, onNext, on
     }
   };
 
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text');
+    const digits = pastedData.replace(/\D/g, ''); // Extraer solo los dígitos
+    
+    if (digits.length >= 6) {
+      const newCode = digits.slice(0, 6).split('');
+      setVerificationCode(newCode);
+      
+      // Enfocar el último input para indicar que está completo
+      const lastInput = document.getElementById('code-input-5');
+      lastInput?.focus();
+    }
+  };
+
   const handleVerificationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const codeString = verificationCode.join('');
@@ -422,6 +437,7 @@ export const OnboardingAuth: React.FC<OnboardingAuthProps> = ({ step, onNext, on
                       prevInput?.focus();
                     }
                   }}
+                  onPaste={handlePaste}
                   disabled={isSubmitting}
                 />
               ))}
