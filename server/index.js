@@ -65,13 +65,15 @@ app.post('/api/auth/send-code', async (req, res) => {
           body: JSON.stringify({
             email,
             code,
-            secret: APPS_SCRIPT_SECRET,
+            token: APPS_SCRIPT_SECRET,
             fromAlias: EMAIL_FROM_ALIAS
           })
         });
-        const result = await response.json();
-        if (!result.success) {
-          console.error('Error al enviar correo por Apps Script:', result.error);
+        const resultText = await response.text();
+        if (resultText !== 'OK') {
+          console.error('Error al enviar correo por Apps Script:', resultText);
+        } else {
+          console.log('Correo enviado con éxito por Google Apps Script.');
         }
       } catch (err) {
         console.error('Error al conectar con Google Apps Script:', err);
