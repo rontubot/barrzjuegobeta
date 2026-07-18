@@ -5,9 +5,10 @@ import './UserProfilePanel.css';
 interface UserProfilePanelProps {
   gameState: string;
   userSession: any;
+  onLogout?: () => void;
 }
 
-export const UserProfilePanel: React.FC<UserProfilePanelProps> = ({ gameState, userSession }) => {
+export const UserProfilePanel: React.FC<UserProfilePanelProps> = ({ gameState, userSession, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'profile' | 'history' | 'settings'>('profile');
 
@@ -340,7 +341,13 @@ export const UserProfilePanel: React.FC<UserProfilePanelProps> = ({ gameState, u
               className="btn-drawer-logout"
               onClick={() => {
                 localStorage.removeItem('barrz_session');
-                window.location.reload(); // Recarga simple para limpiar sesión mock
+                localStorage.removeItem('barrz_token');
+                if (onLogout) {
+                  onLogout();
+                } else {
+                  window.location.reload();
+                }
+                setIsOpen(false);
               }}
             >
               <LogOut size={16} />

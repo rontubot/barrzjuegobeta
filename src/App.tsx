@@ -132,6 +132,13 @@ function App() {
     setGameState('splash');
   };
 
+  const handleLogout = () => {
+    setUserSession(null);
+    localStorage.removeItem('barrz_session');
+    localStorage.removeItem('barrz_token');
+    setGameState('auth_choice');
+  };
+
   // Enrutador de avance de pantallas
   const handleNextStep = (nextStep: string, data?: any) => {
     if (data) {
@@ -304,7 +311,7 @@ function App() {
     <div className="app-root">
       {mainContent}
       <MenuAudioPlayer gameState={gameState} />
-      <UserProfilePanel gameState={gameState} userSession={userSession} />
+      <UserProfilePanel gameState={gameState} userSession={userSession} onLogout={handleLogout} />
       <div className="app-version-tag">v3.1</div>
     </div>
   );
