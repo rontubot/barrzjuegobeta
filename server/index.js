@@ -221,6 +221,14 @@ app.post('/api/auth/login', async (req, res) => {
 
     const user = userRes.rows[0];
 
+    // Si el usuario no tiene nombre de usuario, generarlo
+    if (!user.username) {
+      const emailPrefix = user.email.split('@')[0];
+      const defaultUsername = emailPrefix.slice(0, 15) + '_' + Math.floor(100 + Math.random() * 900);
+      await db.query('UPDATE users SET username = $1 WHERE id = $2', [defaultUsername, user.id]);
+      user.username = defaultUsername;
+    }
+
     // Si es un usuario de Google que no tiene contraseña
     if (!user.password_hash) {
       return res.status(400).json({ error: 'Esta cuenta usa inicio de sesión con Google.' });
@@ -278,6 +286,14 @@ app.get('/api/auth/verify-token', async (req, res) => {
       return res.status(401).json({ error: 'Usuario no encontrado.' });
     }
     const user = userRes.rows[0];
+
+    // Si el usuario no tiene nombre de usuario, generarlo
+    if (!user.username) {
+      const emailPrefix = user.email.split('@')[0];
+      const defaultUsername = emailPrefix.slice(0, 15) + '_' + Math.floor(100 + Math.random() * 900);
+      await db.query('UPDATE users SET username = $1 WHERE id = $2', [defaultUsername, user.id]);
+      user.username = defaultUsername;
+    }
 
     // Obtener estadísticas e historial reales
     const profileData = await getUserProfileData(user.id);
