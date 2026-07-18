@@ -5,6 +5,12 @@ import type { BeatCard, ChallengeCard } from '../data/cards';
 import { ConfirmDialog } from './ConfirmDialog';
 import './Game.css';
 
+const getApiUrl = (path: string) => {
+  const isProd = import.meta.env.PROD;
+  const baseUrl = isProd ? window.location.origin : 'http://localhost:3001';
+  return `${baseUrl}${path}`;
+};
+
 const DEATHMATCH_THEMES = [
   { title: 'EL TODO O NADA', desc: 'Improvisen sobre arriesgarlo todo en el último segundo.', highlight: 'ÚLTIMO CARTUCHO' },
   { title: 'LA CAÍDA DEL IMPERIO', desc: 'Rimen sobre el poder, la ambición y la caída inevitable de los grandes.', highlight: 'AMBICIÓN' },
@@ -145,6 +151,70 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
       }
     }
   }, [startingPlayer, playerNames, isReplicaActive]);
+
+  // Enviar resultados al backend cuando finalice la partida
+  useEffect(() => {
+    if (subState === 'game_over') {
+      const saveGameResult = async () => {
+        const token = localStorage.getItem('barrz_token');
+        if (!token) return; // Si es invitado, no guarda en DB
+
+        const userSessionStr = localStorage.getItem('barrz_session');
+        if (!userSessionStr) return;
+        const userSession = JSON.parse(userSessionStr);
+        const myName = userSession.username;
+        if (!myName) return;
+
+        // Determinar jugador al cual asociar los puntos
+        const hasMe = playerNames.includes(myName);
+        const targetPlayer = hasMe ? myName : playerNames[0];
+        const userScore = scores[targetPlayer] || 0;
+        
+        let result = 'complete';
+        let playerRank = 1;
+
+        if (mode === 'multiplayer') {
+          const myRank = ranksList.find(r => r.name === targetPlayer);
+          playerRank = myRank ? myRank.rank : 1;
+          result = playerRank === 1 ? 'win' : 'loss';
+        }
+
+        try {
+          const res = await fetch(getApiUrl('/api/auth/save-game'), {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              mode: mode,
+              roundsCount: totalRounds,
+              points: userScore,
+              result: result,
+              playerRank: playerRank,
+              players: playerNames,
+              scores: scores
+            })
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            console.log('Resultados de batalla guardados en base de datos.');
+            if (data.stats && data.history) {
+              localStorage.setItem('barrz_session', JSON.stringify({
+                ...userSession,
+                stats: data.stats,
+                history: data.history
+              }));
+            }
+          }
+        } catch (err) {
+          console.error('Error al guardar partida:', err);
+        }
+      };
+
+      saveGameResult();
+    }
+  }, [subState]);
 
   // Simulador de barra de progreso de Spotify
   useEffect(() => {

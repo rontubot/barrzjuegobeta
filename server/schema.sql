@@ -24,3 +24,16 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS username VARCHAR(100);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar VARCHAR(50) DEFAULT 'crown';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_type VARCHAR(20) DEFAULT 'preset';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS custom_avatar_url TEXT;
+
+CREATE TABLE IF NOT EXISTS game_history (
+  id SERIAL PRIMARY KEY,
+  user_id INT REFERENCES users(id) ON DELETE CASCADE,
+  mode VARCHAR(50) NOT NULL,
+  rounds_count INT NOT NULL,
+  points INT NOT NULL,
+  result VARCHAR(20) NOT NULL,
+  player_rank INT,
+  players TEXT,
+  scores TEXT,
+  battle_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

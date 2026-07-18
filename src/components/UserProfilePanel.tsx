@@ -435,19 +435,19 @@ export const UserProfilePanel: React.FC<UserProfilePanelProps> = ({ gameState, u
                 <h4 className="section-subtitle font-base">Estadísticas de Rimas</h4>
                 <div className="stats-grid">
                   <div className="stat-card">
-                    <span className="stat-value text-glow-teal">32</span>
+                    <span className="stat-value text-glow-teal">{userSession?.stats?.totalBattles ?? 0}</span>
                     <span className="stat-label">Batallas</span>
                   </div>
                   <div className="stat-card">
-                    <span className="stat-value text-glow-pink">24</span>
+                    <span className="stat-value text-glow-pink">{userSession?.stats?.wins ?? 0}</span>
                     <span className="stat-label">Victorias</span>
                   </div>
                   <div className="stat-card">
-                    <span className="stat-value text-glow-teal">75%</span>
+                    <span className="stat-value text-glow-teal">{userSession?.stats?.winRate ?? 0}%</span>
                     <span className="stat-label">Win Rate</span>
                   </div>
                   <div className="stat-card">
-                    <span className="stat-value text-glow-pink">185</span>
+                    <span className="stat-value text-glow-pink">{userSession?.stats?.maxPoints ?? 0}</span>
                     <span className="stat-label">Max Pts</span>
                   </div>
                 </div>
@@ -460,49 +460,58 @@ export const UserProfilePanel: React.FC<UserProfilePanelProps> = ({ gameState, u
             <div className="drawer-tab-content fade-in">
               <h4 className="section-subtitle font-base mb-10">Partidas Recientes</h4>
               <div className="history-list">
-                <div className="history-card win">
-                  <div className="history-card-header">
-                    <span className="history-badge win-badge">VICTORIA</span>
-                    <span className="history-time-ago font-base">Hace 2 horas</span>
-                  </div>
-                  <div className="history-card-body">
-                    <span className="history-battle-type">Cypher Urbano (Modo Libre)</span>
-                    <span className="history-score-val font-base">+185 Pts</span>
-                  </div>
-                </div>
+                {!userSession?.history || userSession.history.length === 0 ? (
+                  <p className="history-empty-message">
+                    Aún no jugaste ninguna batalla. ¡Inicia un combate para empezar tu registro!
+                  </p>
+                ) : (
+                  userSession.history.map((item: any) => {
+                    let badgeClass = 'win-badge';
+                    let badgeText = 'VICTORIA';
+                    let cardClass = 'win';
 
-                <div className="history-card loss">
-                  <div className="history-card-header">
-                    <span className="history-badge loss-badge">DERROTA</span>
-                    <span className="history-time-ago font-base">Ayer</span>
-                  </div>
-                  <div className="history-card-body">
-                    <span className="history-battle-type">Duelo Individual vs Bot</span>
-                    <span className="history-score-val font-base">+120 Pts</span>
-                  </div>
-                </div>
+                    if (item.result === 'loss') {
+                      badgeClass = 'loss-badge';
+                      badgeText = 'DERROTA';
+                      cardClass = 'loss';
+                    } else if (item.result === 'draw') {
+                      badgeClass = 'draw-badge';
+                      badgeText = 'EMPATE';
+                      cardClass = 'draw';
+                    } else if (item.result === 'complete') {
+                      badgeClass = 'complete-badge';
+                      badgeText = 'COMPLETADO';
+                      cardClass = 'complete';
+                    }
 
-                <div className="history-card win">
-                  <div className="history-card-header">
-                    <span className="history-badge win-badge">VICTORIA</span>
-                    <span className="history-time-ago font-base">Hace 3 días</span>
-                  </div>
-                  <div className="history-card-body">
-                    <span className="history-battle-type">Desafío Temático (Multijugador)</span>
-                    <span className="history-score-val font-base">+160 Pts</span>
-                  </div>
-                </div>
+                    const dateStr = new Date(item.battleDate).toLocaleDateString('es-ES', {
+                      day: 'numeric',
+                      month: 'short',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    });
 
-                <div className="history-card win">
-                  <div className="history-card-header">
-                    <span className="history-badge win-badge">VICTORIA</span>
-                    <span className="history-time-ago font-base">Hace 5 días</span>
-                  </div>
-                  <div className="history-card-body">
-                    <span className="history-battle-type">Cypher de Práctica</span>
-                    <span className="history-score-val font-base">+140 Pts</span>
-                  </div>
-                </div>
+                    const battleType = item.mode === 'solo' 
+                      ? `Cypher Solitario (${item.roundsCount} ${item.roundsCount === 1 ? 'ronda' : 'rondas'})`
+                      : `Batalla Grupal (${item.roundsCount} ${item.roundsCount === 1 ? 'ronda' : 'rondas'})`;
+
+                    return (
+                      <div key={item.id} className={`history-card ${cardClass}`}>
+                        <div className="history-card-header">
+                          <span className={`history-badge ${badgeClass}`}>{badgeText}</span>
+                          <span className="history-time-ago font-base">{dateStr}</span>
+                        </div>
+                        <div className="history-card-body">
+                          <span className="history-battle-type">{battleType}</span>
+                          <span className="history-score-val font-base">
+                            {item.playerRank ? `#${item.playerRank} • ` : ''}
+                            +{item.points} Pts
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
           )}

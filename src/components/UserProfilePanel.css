@@ -330,6 +330,14 @@
   border-left-color: #e91e63;
 }
 
+.history-card.draw {
+  border-left-color: #ff9800; /* Naranja para empates */
+}
+
+.history-card.complete {
+  border-left-color: var(--neon-teal); /* Teal para modo solitario completo */
+}
+
 .history-card-header {
   display: flex;
   justify-content: space-between;
@@ -352,6 +360,24 @@
 .loss-badge {
   background: rgba(233, 30, 99, 0.1);
   color: #e91e63;
+}
+
+.draw-badge {
+  background: rgba(255, 152, 0, 0.1);
+  color: #ff9800;
+}
+
+.complete-badge {
+  background: rgba(0, 245, 171, 0.1);
+  color: var(--neon-teal);
+}
+
+.history-empty-message {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 30px 10px;
+  line-height: 1.6;
 }
 
 .history-time-ago {

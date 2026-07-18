@@ -19,6 +19,64 @@ const generateCode = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
+// Helper: obtener estadísticas e historial real de un usuario
+const getUserProfileData = async (userId) => {
+  try {
+    // 1. Calcular estadísticas agrupadas
+    const statsRes = await db.query(
+      `SELECT 
+         COUNT(*)::int as total_battles,
+         COUNT(CASE WHEN result = 'win' THEN 1 END)::int as wins,
+         COALESCE(MAX(points), 0)::int as max_points
+       FROM game_history 
+       WHERE user_id = $1`,
+      [userId]
+    );
+    
+    const stats = statsRes.rows[0];
+    const totalBattles = stats.total_battles || 0;
+    const wins = stats.wins || 0;
+    const maxPoints = stats.max_points || 0;
+    const winRate = totalBattles > 0 ? Math.round((wins / totalBattles) * 100) : 0;
+
+    // 2. Obtener historial reciente (últimas 10 partidas)
+    const historyRes = await db.query(
+      `SELECT id, mode, rounds_count, points, result, player_rank, players, scores, battle_date
+       FROM game_history
+       WHERE user_id = $1
+       ORDER BY battle_date DESC
+       LIMIT 10`,
+      [userId]
+    );
+
+    return {
+      stats: {
+        totalBattles,
+        wins,
+        winRate,
+        maxPoints
+      },
+      history: historyRes.rows.map(row => ({
+        id: row.id,
+        mode: row.mode,
+        roundsCount: row.rounds_count,
+        points: row.points,
+        result: row.result,
+        playerRank: row.player_rank,
+        players: row.players ? JSON.parse(row.players) : [],
+        scores: row.scores ? JSON.parse(row.scores) : {},
+        battleDate: row.battle_date
+      }))
+    };
+  } catch (err) {
+    console.error('Error al obtener datos de perfil del usuario:', err);
+    return {
+      stats: { totalBattles: 0, wins: 0, winRate: 0, maxPoints: 0 },
+      history: []
+    };
+  }
+};
+
 // --- ENDPOINTS DE API ---
 
 // 1. Enviar código de verificación por correo
@@ -177,6 +235,9 @@ app.post('/api/auth/login', async (req, res) => {
     // Firmar JWT
     const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
 
+    // Obtener estadísticas e historial reales
+    const profileData = await getUserProfileData(user.id);
+
     res.json({
       success: true,
       token,
@@ -185,6 +246,8 @@ app.post('/api/auth/login', async (req, res) => {
       avatar: user.avatar,
       avatar_type: user.avatar_type,
       custom_avatar_url: user.custom_avatar_url,
+      stats: profileData.stats,
+      history: profileData.history,
       loggedIn: true,
       method: 'email'
     });
@@ -216,13 +279,18 @@ app.get('/api/auth/verify-token', async (req, res) => {
     }
     const user = userRes.rows[0];
 
+    // Obtener estadísticas e historial reales
+    const profileData = await getUserProfileData(user.id);
+
     res.json({
       success: true,
       email: user.email,
       username: user.username,
       avatar: user.avatar,
       avatar_type: user.avatar_type,
-      custom_avatar_url: user.custom_avatar_url
+      custom_avatar_url: user.custom_avatar_url,
+      stats: profileData.stats,
+      history: profileData.history
     });
   } catch (err) {
     res.status(401).json({ error: 'Token inválido o expirado.' });
@@ -298,6 +366,9 @@ app.post('/api/auth/google-login', async (req, res) => {
     // Firmar JWT propio de la App
     const token = jwt.sign({ id: fullUser.id, email: fullUser.email }, JWT_SECRET, { expiresIn: '7d' });
 
+    // Obtener estadísticas e historial reales
+    const profileData = await getUserProfileData(fullUser.id);
+
     res.json({
       success: true,
       token,
@@ -306,6 +377,8 @@ app.post('/api/auth/google-login', async (req, res) => {
       avatar: fullUser.avatar,
       avatar_type: fullUser.avatar_type,
       custom_avatar_url: fullUser.custom_avatar_url,
+      stats: profileData.stats,
+      history: profileData.history,
       loggedIn: true,
       method: 'google'
     });
@@ -363,6 +436,54 @@ app.post('/api/auth/update-profile', async (req, res) => {
     });
   } catch (err) {
     console.error('Error al actualizar perfil:', err);
+    res.status(401).json({ error: 'Token inválido o expirado.' });
+  }
+});
+
+// 7. Guardar Partida Finalizada
+app.post('/api/auth/save-game', async (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Token no provisto.' });
+  }
+
+  const token = authHeader.split(' ')[1];
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const { mode, roundsCount, points, result, playerRank, players, scores } = req.body;
+
+    if (!mode || points === undefined || !result) {
+      return res.status(400).json({ error: 'Faltan parámetros requeridos de la partida.' });
+    }
+
+    // Insertar partida en la tabla de historial
+    await db.query(
+      `INSERT INTO game_history (user_id, mode, rounds_count, points, result, player_rank, players, scores)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [
+        decoded.id,
+        mode,
+        roundsCount,
+        points,
+        result,
+        playerRank || null,
+        players ? JSON.stringify(players) : null,
+        scores ? JSON.stringify(scores) : null
+      ]
+    );
+
+    // Obtener las estadísticas e historial actualizados
+    const profileData = await getUserProfileData(decoded.id);
+
+    res.json({
+      success: true,
+      message: 'Partida guardada con éxito.',
+      stats: profileData.stats,
+      history: profileData.history
+    });
+  } catch (err) {
+    console.error('Error al guardar partida:', err);
     res.status(401).json({ error: 'Token inválido o expirado.' });
   }
 });
