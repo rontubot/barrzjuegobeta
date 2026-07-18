@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Cloud, ArrowRight, ArrowLeft, Mail, Lock, ShieldCheck, HelpCircle, Compass, Radio } from 'lucide-react';
 import './OnboardingAuth.css';
 
@@ -22,6 +22,37 @@ export const OnboardingAuth: React.FC<OnboardingAuthProps> = ({ step, onNext, on
   const [isSpotifyLinked, setIsSpotifyLinked] = useState(() => localStorage.getItem('barrz_spotify_linked') === 'true');
   const [isLogin, setIsLogin] = useState(false);
   const [devCode, setDevCode] = useState('');
+
+  useEffect(() => {
+    if (step === 'auth_choice') {
+      const initGoogle = () => {
+        // @ts-ignore
+        if (window.google?.accounts?.id) {
+          // @ts-ignore
+          window.google.accounts.id.initialize({
+            client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '103522205562-b9r1r76scj8g7btrhfs8a209t7h6j3s1.apps.googleusercontent.com',
+            callback: handleGoogleCredentialResponse
+          });
+          
+          // @ts-ignore
+          window.google.accounts.id.renderButton(
+            document.getElementById('google-signin-btn-container'),
+            { 
+              theme: 'filled_black', 
+              size: 'large', 
+              text: 'continue_with',
+              shape: 'rectangular',
+              width: 300,
+              logo_alignment: 'left'
+            }
+          );
+        } else {
+          setTimeout(initGoogle, 500);
+        }
+      };
+      initGoogle();
+    }
+  }, [step]);
 
   const handleSpotifyToggle = () => {
     const nextVal = !isSpotifyLinked;
@@ -153,17 +184,14 @@ export const OnboardingAuth: React.FC<OnboardingAuthProps> = ({ step, onNext, on
     }
   };
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleCredentialResponse = async (response: any) => {
     setIsSubmitting(true);
     setErrorMsg('');
     try {
-      const mockGoogleId = 'google_123456789_mock';
-      const mockEmail = 'freestyler.google@gmail.com';
-      
       const res = await fetch(getApiUrl('/api/auth/google-login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: mockEmail, googleId: mockGoogleId })
+        body: JSON.stringify({ credential: response.credential })
       });
       
       const data = await res.json();
@@ -171,7 +199,7 @@ export const OnboardingAuth: React.FC<OnboardingAuthProps> = ({ step, onNext, on
         localStorage.setItem('barrz_token', data.token);
         onNext('lobby_start', { email: data.email, loggedIn: true, method: 'google' });
       } else {
-        setErrorMsg(data.error || 'Error al autenticar con Google.');
+        setErrorMsg(data.error || 'Error al iniciar sesión con Google.');
       }
     } catch (err) {
       console.error(err);
@@ -314,27 +342,9 @@ export const OnboardingAuth: React.FC<OnboardingAuthProps> = ({ step, onNext, on
               <span>O</span>
             </div>
 
-            <button className="btn-google-auth w-100" onClick={handleGoogleLogin} disabled={isSubmitting}>
-              <svg className="google-icon" viewBox="0 0 24 24" width="18" height="18">
-                <path
-                  fill="#4285F4"
-                  d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v3.927h6.6c-.29 1.5-.145 2.77-.98 3.69v3.063h6.39c3.746-3.447 5.735-8.52 5.735-14.61z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 24c3.24 0 5.955-1.076 7.94-2.923l-6.39-4.96c-1.78 1.194-4.06 1.9-6.55 1.9-5.04 0-9.31-3.41-10.83-8.01H.17v5.18C2.185 20.07 6.68 24 12 24z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M1.17 10.027A14.348 14.348 0 0 1 1.17 6.01V.83H.17C.17.83 0 2 .03 3.96l1.14 6.067z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.43-3.43C17.95 1.19 15.24 0 12 0 6.68 0 2.185 3.93.17 9.12l5.04 3.9c1.52-4.6 5.79-8.01 10.79-8.01z"
-                />
-              </svg>
-              <span>Continuar con Google</span>
-            </button>
+            <div className="google-btn-wrapper">
+              <div id="google-signin-btn-container"></div>
+            </div>
 
             <button 
               type="button" 

@@ -173,15 +173,35 @@ app.get('/api/auth/verify-token', async (req, res) => {
   }
 });
 
-// 5. Google Login (Mock/Endpoint inicial para la siguiente fase)
+// 5. Google Login (Verificación del token JWT de Google)
 app.post('/api/auth/google-login', async (req, res) => {
-  const { email, googleId } = req.body;
-  if (!email || !googleId) {
-    return res.status(400).json({ error: 'Datos de Google incompletos.' });
+  const { credential } = req.body;
+  if (!credential) {
+    return res.status(400).json({ error: 'Falta la credencial de Google.' });
   }
 
   try {
-    // Buscar si ya existe por googleId o por email
+    // Llamar al endpoint oficial de Google para verificar el token JWT (ID Token)
+    const googleRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
+    const payload = await googleRes.json();
+
+    if (!googleRes.ok || payload.error_description) {
+      return res.status(400).json({ error: 'Token de Google inválido o expirado.' });
+    }
+
+    const { email, sub: googleId, aud } = payload;
+
+    // Opcional: Validar client ID si está configurado en las variables de entorno del servidor
+    const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+    if (GOOGLE_CLIENT_ID && aud !== GOOGLE_CLIENT_ID) {
+      return res.status(400).json({ error: 'El ID de cliente de Google no coincide con el de esta aplicación.' });
+    }
+
+    if (!email) {
+      return res.status(400).json({ error: 'No se pudo obtener el correo de la cuenta de Google.' });
+    }
+
+    // Buscar si ya existe por google_id o por email
     let userRes = await db.query('SELECT * FROM users WHERE google_id = $1 OR email = $2', [googleId, email]);
     let user;
 
@@ -197,10 +217,11 @@ app.post('/api/auth/google-login', async (req, res) => {
       // Si el usuario existía por email pero no tenía google_id, asociarlo
       if (!user.google_id) {
         await db.query('UPDATE users SET google_id = $1 WHERE id = $2', [googleId, user.id]);
+        user.google_id = googleId;
       }
     }
 
-    // Firmar JWT
+    // Firmar JWT propio de la App
     const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
 
     res.json({
