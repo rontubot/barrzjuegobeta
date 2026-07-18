@@ -1956,16 +1956,16 @@
 .voting-option-number {
   background: rgba(255, 255, 255, 0.08);
   color: var(--text-secondary);
-  border-radius: 50%;
-  width: 26px;
-  height: 26px;
+  border-radius: 20px;
+  padding: 4px 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 800;
   border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .voting-option-btn.selected .voting-option-number {

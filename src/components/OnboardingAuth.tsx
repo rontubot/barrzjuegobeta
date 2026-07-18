@@ -8,6 +8,11 @@ interface OnboardingAuthProps {
   onBack: () => void;
 }
 
+const getApiUrl = (path: string) => {
+  const base = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : '');
+  return `${base}${path}`;
+};
+
 export const OnboardingAuth: React.FC<OnboardingAuthProps> = ({ step, onNext, onBack }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -15,6 +20,8 @@ export const OnboardingAuth: React.FC<OnboardingAuthProps> = ({ step, onNext, on
   const [errorMsg, setErrorMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSpotifyLinked, setIsSpotifyLinked] = useState(() => localStorage.getItem('barrz_spotify_linked') === 'true');
+  const [isLogin, setIsLogin] = useState(false);
+  const [devCode, setDevCode] = useState('');
 
   const handleSpotifyToggle = () => {
     const nextVal = !isSpotifyLinked;
@@ -22,8 +29,7 @@ export const OnboardingAuth: React.FC<OnboardingAuthProps> = ({ step, onNext, on
     localStorage.setItem('barrz_spotify_linked', String(nextVal));
   };
 
-  // MOCK LOGIC FOR AUTH FLOW
-  const handleEmailSubmit = (e: React.FormEvent) => {
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
       setErrorMsg('Por favor, ingresá un correo electrónico.');
@@ -33,22 +39,72 @@ export const OnboardingAuth: React.FC<OnboardingAuthProps> = ({ step, onNext, on
       setErrorMsg('Ingresá un correo válido.');
       return;
     }
+    
     setErrorMsg('');
-    onNext('auth_password', { email });
+    setIsSubmitting(true);
+    
+    try {
+      const res = await fetch(getApiUrl('/api/auth/send-code'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      
+      const data = await res.json();
+      
+      if (res.ok) {
+        setIsLogin(false);
+        setDevCode(data.devCode || '');
+        onNext('auth_password', { email });
+      } else if (data.error === 'El correo ya está registrado.') {
+        setIsLogin(true);
+        setErrorMsg('');
+        onNext('auth_password', { email });
+      } else {
+        setErrorMsg(data.error || 'Ocurrió un error. Intenta de nuevo.');
+      }
+    } catch (err) {
+      console.error(err);
+      setErrorMsg('No se pudo conectar con el servidor.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handlePasswordSubmit = (e: React.FormEvent) => {
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password.length < 6) {
       setErrorMsg('La contraseña debe tener al menos 6 caracteres.');
       return;
     }
     setErrorMsg('');
-    setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    
+    if (isLogin) {
+      setIsSubmitting(true);
+      try {
+        const res = await fetch(getApiUrl('/api/auth/login'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+          localStorage.setItem('barrz_token', data.token);
+          onNext('lobby_start', { email: data.email, loggedIn: true, method: 'email' });
+        } else {
+          setErrorMsg(data.error || 'Contraseña incorrecta.');
+        }
+      } catch (err) {
+        console.error(err);
+        setErrorMsg('No se pudo conectar con el servidor.');
+      } finally {
+        setIsSubmitting(false);
+      }
+    } else {
       onNext('auth_verify', { email, password });
-    }, 800);
+    }
   };
 
   const handleVerificationCodeChange = (index: number, value: string) => {
@@ -64,7 +120,7 @@ export const OnboardingAuth: React.FC<OnboardingAuthProps> = ({ step, onNext, on
     }
   };
 
-  const handleVerificationSubmit = (e: React.FormEvent) => {
+  const handleVerificationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const codeString = verificationCode.join('');
     if (codeString.length < 6) {
@@ -73,18 +129,76 @@ export const OnboardingAuth: React.FC<OnboardingAuthProps> = ({ step, onNext, on
     }
     setErrorMsg('');
     setIsSubmitting(true);
-    setTimeout(() => {
+    
+    try {
+      const res = await fetch(getApiUrl('/api/auth/register'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, code: codeString })
+      });
+      
+      const data = await res.json();
+      
+      if (res.ok) {
+        localStorage.setItem('barrz_token', data.token);
+        onNext('lobby_start', { email: data.email, loggedIn: true, method: 'email' });
+      } else {
+        setErrorMsg(data.error || 'Código incorrecto.');
+      }
+    } catch (err) {
+      console.error(err);
+      setErrorMsg('No se pudo conectar con el servidor.');
+    } finally {
       setIsSubmitting(false);
-      onNext('lobby_start', { email, loggedIn: true, method: 'email' });
-    }, 1000);
+    }
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
     setIsSubmitting(true);
-    setTimeout(() => {
+    setErrorMsg('');
+    try {
+      const mockGoogleId = 'google_123456789_mock';
+      const mockEmail = 'freestyler.google@gmail.com';
+      
+      const res = await fetch(getApiUrl('/api/auth/google-login'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: mockEmail, googleId: mockGoogleId })
+      });
+      
+      const data = await res.json();
+      if (res.ok) {
+        localStorage.setItem('barrz_token', data.token);
+        onNext('lobby_start', { email: data.email, loggedIn: true, method: 'google' });
+      } else {
+        setErrorMsg(data.error || 'Error al autenticar con Google.');
+      }
+    } catch (err) {
+      console.error(err);
+      setErrorMsg('No se pudo conectar con el servidor.');
+    } finally {
       setIsSubmitting(false);
-      onNext('lobby_start', { email: 'freestyler.google@gmail.com', loggedIn: true, method: 'google' });
-    }, 1200);
+    }
+  };
+
+  const handleResendCode = async () => {
+    setErrorMsg('');
+    try {
+      const res = await fetch(getApiUrl('/api/auth/send-code'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setDevCode(data.devCode || '');
+        alert('Código re-enviado!');
+      } else {
+        setErrorMsg(data.error);
+      }
+    } catch (err) {
+      setErrorMsg('Error al reenviar código.');
+    }
   };
 
   return (
@@ -170,8 +284,8 @@ export const OnboardingAuth: React.FC<OnboardingAuthProps> = ({ step, onNext, on
         {/* STEP 3: AUTH CHOICE */}
         {step === 'auth_choice' && (
           <div className="step-content fade-in">
-            <h2 className="step-title font-graffiti text-glow-pink">REGÍSTRATE</h2>
-            <p className="step-sub">Ingresá tu correo para crear tu perfil de competidor.</p>
+            <h2 className="step-title font-graffiti text-glow-pink">INGRESÁ</h2>
+            <p className="step-sub">Introduce tu correo electrónico para iniciar sesión o registrarte.</p>
 
             <form onSubmit={handleEmailSubmit} className="auth-form">
               <div className="input-group">
@@ -191,7 +305,7 @@ export const OnboardingAuth: React.FC<OnboardingAuthProps> = ({ step, onNext, on
               {errorMsg && <p className="error-message">{errorMsg}</p>}
 
               <button type="submit" className="btn-neon-pink w-100" disabled={isSubmitting}>
-                <span>CREAR CUENTA</span>
+                <span>CONTINUAR</span>
                 <ArrowRight size={18} />
               </button>
             </form>
@@ -239,8 +353,15 @@ export const OnboardingAuth: React.FC<OnboardingAuthProps> = ({ step, onNext, on
         {/* STEP 4: CONTRASEÑA */}
         {step === 'auth_password' && (
           <form onSubmit={handlePasswordSubmit} className="step-content fade-in">
-            <h2 className="step-title font-graffiti text-glow-teal">CREAR CONTRASEÑA</h2>
-            <p className="step-sub">Escribe una clave segura para proteger tus registros y puntuaciones.</p>
+            <h2 className="step-title font-graffiti text-glow-teal">
+              {isLogin ? 'INICIAR SESIÓN' : 'CREAR CONTRASEÑA'}
+            </h2>
+            <p className="step-sub">
+              {isLogin 
+                ? 'Ingresá tu contraseña para acceder a tu cuenta.' 
+                : 'Escribe una clave segura para proteger tus registros y puntuaciones.'
+              }
+            </p>
 
             <div className="auth-form">
               <div className="input-group">
@@ -260,7 +381,7 @@ export const OnboardingAuth: React.FC<OnboardingAuthProps> = ({ step, onNext, on
               {errorMsg && <p className="error-message">{errorMsg}</p>}
 
               <button type="submit" className="btn-neon-teal w-100" disabled={isSubmitting}>
-                <span>{isSubmitting ? 'GUARDANDO...' : 'SIGUIENTE'}</span>
+                <span>{isSubmitting ? 'PROCESANDO...' : (isLogin ? 'INGRESAR' : 'SIGUIENTE')}</span>
                 <ArrowRight size={18} />
               </button>
             </div>
@@ -301,13 +422,19 @@ export const OnboardingAuth: React.FC<OnboardingAuthProps> = ({ step, onNext, on
 
             {errorMsg && <p className="error-message">{errorMsg}</p>}
 
+            {devCode && (
+              <div className="dev-code-alert">
+                <span>💡 Código de prueba: <strong>{devCode}</strong></span>
+              </div>
+            )}
+
             <button type="submit" className="btn-neon-pink w-100 mt-20" disabled={isSubmitting}>
               <span>{isSubmitting ? 'VERIFICANDO...' : 'COMPLETAR REGISTRO'}</span>
               <ArrowRight size={18} />
             </button>
             
             <p className="resend-text">
-              ¿No recibiste el código? <button type="button" className="btn-link" onClick={() => alert('Código re-enviado!')}>Reenviar código</button>
+              ¿No recibiste el código? <button type="button" className="btn-link" onClick={handleResendCode} disabled={isSubmitting}>Reenviar código</button>
             </p>
           </form>
         )}

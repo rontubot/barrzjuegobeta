@@ -7,6 +7,11 @@ import { MenuAudioPlayer } from './components/MenuAudioPlayer';
 import { UserProfilePanel } from './components/UserProfilePanel';
 import './App.css';
 
+const getApiUrl = (path: string) => {
+  const base = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : '');
+  return `${base}${path}`;
+};
+
 type GameState =
   | 'splash'
   | 'onboarding_1'
@@ -70,19 +75,49 @@ function App() {
 
   // Restaurar y verificar sesión una vez terminada la carga
   useEffect(() => {
-    if (!isLoading) {
+    const verifyToken = async () => {
+      const token = localStorage.getItem('barrz_token');
       const savedSession = localStorage.getItem('barrz_session');
-      if (savedSession) {
+      
+      if (token) {
         try {
-          const session = JSON.parse(savedSession);
-          setUserSession(session);
-          setGameState('splash'); // Va al inicio (Jugar Ahora)
+          const res = await fetch(getApiUrl('/api/auth/verify-token'), {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          const data = await res.json();
+          
+          if (res.ok && data.success) {
+            const session = savedSession ? JSON.parse(savedSession) : { email: data.email, loggedIn: true, method: 'email' };
+            setUserSession(session);
+            setGameState('splash');
+          } else {
+            localStorage.removeItem('barrz_token');
+            localStorage.removeItem('barrz_session');
+            setGameState('auth_choice');
+          }
         } catch (e) {
-          setGameState('auth_choice');
+          if (savedSession) {
+            setUserSession(JSON.parse(savedSession));
+            setGameState('splash');
+          } else {
+            setGameState('auth_choice');
+          }
         }
       } else {
-        setGameState('auth_choice'); // Login por primera vez
+        if (savedSession) {
+          setUserSession(JSON.parse(savedSession));
+          setGameState('splash');
+        } else {
+          setGameState('auth_choice');
+        }
       }
+    };
+
+    if (!isLoading) {
+      verifyToken();
     }
   }, [isLoading]);
 
@@ -151,6 +186,7 @@ function App() {
         // Log out y volver al registro
         setUserSession(null);
         localStorage.removeItem('barrz_session');
+        localStorage.removeItem('barrz_token');
         setGameState('auth_choice');
         break;
       case 'tutorial_ask':

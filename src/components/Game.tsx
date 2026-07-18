@@ -81,6 +81,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
   // Estados para Réplicas (Desempate)
   const [isReplicaActive, setIsReplicaActive] = useState(false);
   const [replicaPlayers, setReplicaPlayers] = useState<string[]>([]);
+  const [turnsPlayedInRound, setTurnsPlayedInRound] = useState(0);
 
   // Filtrar cartas de desafíos por categorías seleccionadas (en réplica forzar palabras y tematicas)
   const activeCategoriesForDraw = isReplicaActive ? ['palabras', 'tematicas'] : categories;
@@ -310,8 +311,17 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
     setSelectedBeatForTurn(null);
     setSelectedChallengeForTurn(null);
 
-    // Comprobar si era el último jugador de la lista activa en esta ronda
-    if (currentPlayerIndex === activeRoundPlayers.length - 1) {
+    const nextTurnsPlayed = turnsPlayedInRound + 1;
+
+    // Comprobar si ya jugaron todos los competidores en la ronda actual
+    if (nextTurnsPlayed === activeRoundPlayers.length) {
+      // Fin de la ronda
+      setTurnsPlayedInRound(0);
+
+      // El siguiente jugador inicial de la siguiente ronda será el startingPlayer
+      const startIndex = playerNames.indexOf(startingPlayer);
+      setCurrentPlayerIndex(startIndex !== -1 ? startIndex : 0);
+
       if (isReplicaActive) {
         // --- PROCESO EN MODO RÉPLICA ---
         const maxScore = Math.max(...Object.values(currentScores));
@@ -347,15 +357,15 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
             setSubState('game_over');
           }
         } else {
-          // Avanzar de ronda y volver al primer jugador
+          // Avanzar de ronda
           setCurrentRound(prev => prev + 1);
-          setCurrentPlayerIndex(0);
           setSubState('ready');
         }
       }
     } else {
       // Siguiente jugador en la misma ronda
-      setCurrentPlayerIndex(prev => prev + 1);
+      setTurnsPlayedInRound(nextTurnsPlayed);
+      setCurrentPlayerIndex(prev => (prev + 1) % activeRoundPlayers.length);
       setSubState('ready');
     }
   };
@@ -381,6 +391,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
     setIsReplicaActive(false);
     setReplicaPlayers([]);
     setReplicaTheme(null);
+    setTurnsPlayedInRound(0);
     
     // Poner puntuaciones en 0
     const resetScores: Record<string, number> = {};
@@ -970,7 +981,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                     onClick={() => setSelectedRating(opt.value)}
                   >
                     <div className="voting-option-left">
-                      <span className="voting-option-number">{opt.value}</span>
+                      <span className="voting-option-number">+{opt.value} PTS</span>
                       <span className="voting-option-emoji">{opt.emoji}</span>
                     </div>
                     <div className="voting-option-center">
@@ -1160,6 +1171,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                   setCurrentRound(1);
                   setIsReplicaActive(false);
                   setReplicaPlayers([]);
+                  setTurnsPlayedInRound(0);
                   const startIndex = playerNames.indexOf(startingPlayer);
                   setCurrentPlayerIndex(startIndex !== -1 ? startIndex : 0);
                   setActiveBeat(null);
