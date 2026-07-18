@@ -50,32 +50,6 @@ app.post('/api/auth/send-code', async (req, res) => {
     console.log(`Código: ${code}`);
     console.log(`=============================================\n`);
 
-    // Construir asunto e HTML en el servidor
-    const subject = 'Código de Verificación - BARRZ Freestyle Lab';
-    const html = `
-      <div style="font-family: Arial, sans-serif; background-color: #0d0d12; color: #ffffff; padding: 30px; border-radius: 12px; max-width: 500px; margin: 0 auto; border: 1px solid #ff007f;">
-        <div style="text-align: center; margin-bottom: 20px;">
-          <h1 style="color: #00f2fe; margin: 0; font-size: 28px; letter-spacing: 2px;">BARRZ</h1>
-          <p style="color: #ff007f; margin: 0; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Freestyle Lab</p>
-        </div>
-        <div style="background-color: #15151e; padding: 25px; border-radius: 8px; border: 1px solid #1a1a26; text-align: center;">
-          <h2 style="color: #ffffff; font-size: 20px; margin-top: 0;">Verifica tu Correo</h2>
-          <p style="color: #8e9297; font-size: 14px; line-height: 1.5; margin-bottom: 20px;">
-            Gracias por registrarte en BARRZ. Para completar el registro de tu cuenta, ingresa el siguiente código de verificación de 6 dígitos:
-          </p>
-          <div style="background-color: #0d0d12; color: #00f2fe; font-size: 32px; font-weight: bold; letter-spacing: 5px; padding: 15px; border-radius: 6px; margin: 20px auto; width: fit-content; border: 1px dashed #00f2fe;">
-            ${code}
-          </div>
-          <p style="color: #8e9297; font-size: 12px; line-height: 1.5; margin-top: 20px; margin-bottom: 0;">
-            Este código expirará en 15 minutos. Si no solicitaste este registro, por favor ignora este correo.
-          </p>
-        </div>
-        <div style="text-align: center; margin-top: 20px; color: #8e9297; font-size: 11px;">
-          © ${new Date().getFullYear()} BARRZ Freestyle Lab. Todos los derechos reservados.
-        </div>
-      </div>
-    `;
-
     // Llamar al Google Apps Script para enviar el correo si está configurado
     const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL;
     const APPS_SCRIPT_SECRET = process.env.APPS_SCRIPT_SECRET;
@@ -90,15 +64,14 @@ app.post('/api/auth/send-code', async (req, res) => {
           },
           body: JSON.stringify({
             email,
-            subject,
-            html,
-            token: APPS_SCRIPT_SECRET,
+            code,
+            secret: APPS_SCRIPT_SECRET,
             fromAlias: EMAIL_FROM_ALIAS
           })
         });
-        const resultText = await response.text();
-        if (resultText !== 'OK') {
-          console.error('Error al enviar correo por Apps Script:', resultText);
+        const result = await response.json();
+        if (!result.success) {
+          console.error('Error al enviar correo por Apps Script:', result.error);
         } else {
           console.log('Correo enviado con éxito por Google Apps Script.');
         }
