@@ -50,11 +50,39 @@ app.post('/api/auth/send-code', async (req, res) => {
     console.log(`Código: ${code}`);
     console.log(`=============================================\n`);
 
-    // Devolvemos el código también en la respuesta para facilitar testing / desarrollo sin mail server
+    // Llamar al Google Apps Script para enviar el correo si está configurado
+    const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL;
+    const APPS_SCRIPT_SECRET = process.env.APPS_SCRIPT_SECRET;
+    const EMAIL_FROM_ALIAS = process.env.EMAIL_FROM_ALIAS;
+
+    if (APPS_SCRIPT_URL) {
+      try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email,
+            code,
+            secret: APPS_SCRIPT_SECRET,
+            fromAlias: EMAIL_FROM_ALIAS
+          })
+        });
+        const result = await response.json();
+        if (!result.success) {
+          console.error('Error al enviar correo por Apps Script:', result.error);
+        }
+      } catch (err) {
+        console.error('Error al conectar con Google Apps Script:', err);
+      }
+    } else {
+      console.log('Aviso: APPS_SCRIPT_URL no está configurado. El correo de verificación no se envió.');
+    }
+
     res.json({ 
       success: true, 
-      message: 'Código de verificación enviado.',
-      devCode: code // Proporcionamos el código para pruebas rápidas
+      message: 'Código de verificación enviado.'
     });
   } catch (err) {
     console.error('Error al enviar código:', err);

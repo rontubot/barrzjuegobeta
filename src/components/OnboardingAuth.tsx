@@ -21,7 +21,6 @@ export const OnboardingAuth: React.FC<OnboardingAuthProps> = ({ step, onNext, on
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSpotifyLinked, setIsSpotifyLinked] = useState(() => localStorage.getItem('barrz_spotify_linked') === 'true');
   const [isLogin, setIsLogin] = useState(false);
-  const [devCode, setDevCode] = useState('');
 
   useEffect(() => {
     if (step === 'auth_choice') {
@@ -85,7 +84,6 @@ export const OnboardingAuth: React.FC<OnboardingAuthProps> = ({ step, onNext, on
       
       if (res.ok) {
         setIsLogin(false);
-        setDevCode(data.devCode || '');
         onNext('auth_password', { email });
       } else if (data.error === 'El correo ya está registrado.') {
         setIsLogin(true);
@@ -219,7 +217,6 @@ export const OnboardingAuth: React.FC<OnboardingAuthProps> = ({ step, onNext, on
       });
       const data = await res.json();
       if (res.ok) {
-        setDevCode(data.devCode || '');
         alert('Código re-enviado!');
       } else {
         setErrorMsg(data.error);
@@ -431,12 +428,6 @@ export const OnboardingAuth: React.FC<OnboardingAuthProps> = ({ step, onNext, on
             </div>
 
             {errorMsg && <p className="error-message">{errorMsg}</p>}
-
-            {devCode && (
-              <div className="dev-code-alert">
-                <span>💡 Código de prueba: <strong>{devCode}</strong></span>
-              </div>
-            )}
 
             <button type="submit" className="btn-neon-pink w-100 mt-20" disabled={isSubmitting}>
               <span>{isSubmitting ? 'VERIFICANDO...' : 'COMPLETAR REGISTRO'}</span>
