@@ -110,10 +110,14 @@ app.post('/api/auth/register', async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
-    // Crear usuario
+    // Generar nombre de usuario por defecto
+    const emailPrefix = email.split('@')[0];
+    const defaultUsername = emailPrefix.slice(0, 15) + '_' + Math.floor(100 + Math.random() * 900);
+
+    // Crear usuario con campos por defecto
     const newUserRes = await db.query(
-      'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email',
-      [email, passwordHash]
+      'INSERT INTO users (email, password_hash, username, avatar, avatar_type) VALUES ($1, $2, $3, $4, $5) RETURNING id, email, username, avatar, avatar_type',
+      [email, passwordHash, defaultUsername, 'crown', 'preset']
     );
 
     const user = newUserRes.rows[0];
@@ -128,6 +132,9 @@ app.post('/api/auth/register', async (req, res) => {
       success: true,
       token,
       email: user.email,
+      username: user.username,
+      avatar: user.avatar,
+      avatar_type: user.avatar_type,
       loggedIn: true,
       method: 'email'
     });
@@ -174,6 +181,10 @@ app.post('/api/auth/login', async (req, res) => {
       success: true,
       token,
       email: user.email,
+      username: user.username,
+      avatar: user.avatar,
+      avatar_type: user.avatar_type,
+      custom_avatar_url: user.custom_avatar_url,
       loggedIn: true,
       method: 'email'
     });
@@ -194,9 +205,24 @@ app.get('/api/auth/verify-token', async (req, res) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
+    
+    // Obtener perfil completo
+    const userRes = await db.query(
+      'SELECT id, email, username, avatar, avatar_type, custom_avatar_url FROM users WHERE id = $1',
+      [decoded.id]
+    );
+    if (userRes.rows.length === 0) {
+      return res.status(401).json({ error: 'Usuario no encontrado.' });
+    }
+    const user = userRes.rows[0];
+
     res.json({
       success: true,
-      email: decoded.email
+      email: user.email,
+      username: user.username,
+      avatar: user.avatar,
+      avatar_type: user.avatar_type,
+      custom_avatar_url: user.custom_avatar_url
     });
   } catch (err) {
     res.status(401).json({ error: 'Token inválido o expirado.' });
@@ -236,10 +262,14 @@ app.post('/api/auth/google-login', async (req, res) => {
     let user;
 
     if (userRes.rows.length === 0) {
-      // Crear nuevo usuario de Google
+      // Generar nombre de usuario por defecto
+      const emailPrefix = email.split('@')[0];
+      const defaultUsername = emailPrefix.slice(0, 15) + '_' + Math.floor(100 + Math.random() * 900);
+
+      // Crear nuevo usuario de Google con campos por defecto
       const insertRes = await db.query(
-        'INSERT INTO users (email, google_id) VALUES ($1, $2) RETURNING id, email',
-        [email, googleId]
+        'INSERT INTO users (email, google_id, username, avatar, avatar_type) VALUES ($1, $2, $3, $4, $5) RETURNING id, email, username, avatar, avatar_type',
+        [email, googleId, defaultUsername, 'crown', 'preset']
       );
       user = insertRes.rows[0];
     } else {
@@ -249,21 +279,91 @@ app.post('/api/auth/google-login', async (req, res) => {
         await db.query('UPDATE users SET google_id = $1 WHERE id = $2', [googleId, user.id]);
         user.google_id = googleId;
       }
+      // Si el usuario no tiene nombre de usuario, generarlo
+      if (!user.username) {
+        const emailPrefix = email.split('@')[0];
+        const defaultUsername = emailPrefix.slice(0, 15) + '_' + Math.floor(100 + Math.random() * 900);
+        await db.query('UPDATE users SET username = $1 WHERE id = $2', [defaultUsername, user.id]);
+        user.username = defaultUsername;
+      }
     }
 
+    // Obtener los datos completos
+    const userProfileRes = await db.query(
+      'SELECT id, email, username, avatar, avatar_type, custom_avatar_url FROM users WHERE id = $1',
+      [user.id]
+    );
+    const fullUser = userProfileRes.rows[0];
+
     // Firmar JWT propio de la App
-    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: fullUser.id, email: fullUser.email }, JWT_SECRET, { expiresIn: '7d' });
 
     res.json({
       success: true,
       token,
-      email: user.email,
+      email: fullUser.email,
+      username: fullUser.username,
+      avatar: fullUser.avatar,
+      avatar_type: fullUser.avatar_type,
+      custom_avatar_url: fullUser.custom_avatar_url,
       loggedIn: true,
       method: 'google'
     });
   } catch (err) {
     console.error('Error en login con Google:', err);
     res.status(500).json({ error: 'Error del servidor en autenticación de Google.' });
+  }
+});
+
+// 6. Actualizar Perfil de Usuario
+app.post('/api/auth/update-profile', async (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Token no provisto.' });
+  }
+
+  const token = authHeader.split(' ')[1];
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const { username, avatar, avatar_type, custom_avatar_url } = req.body;
+
+    if (username && username.trim().length < 3) {
+      return res.status(400).json({ error: 'El nombre de usuario debe tener al menos 3 caracteres.' });
+    }
+
+    // Actualizar usuario en la base de datos
+    await db.query(
+      `UPDATE users 
+       SET username = COALESCE($1, username), 
+           avatar = COALESCE($2, avatar), 
+           avatar_type = COALESCE($3, avatar_type), 
+           custom_avatar_url = $4 
+       WHERE id = $5`,
+      [username, avatar, avatar_type, custom_avatar_url, decoded.id]
+    );
+
+    // Obtener los datos actualizados
+    const userRes = await db.query(
+      'SELECT id, email, username, avatar, avatar_type, custom_avatar_url FROM users WHERE id = $1',
+      [decoded.id]
+    );
+    const user = userRes.rows[0];
+
+    res.json({
+      success: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        avatar: user.avatar,
+        avatar_type: user.avatar_type,
+        custom_avatar_url: user.custom_avatar_url
+      }
+    });
+  } catch (err) {
+    console.error('Error al actualizar perfil:', err);
+    res.status(401).json({ error: 'Token inválido o expirado.' });
   }
 });
 

@@ -23,8 +23,16 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
   ];
   
   // Configuración de juego
-  const [players, setPlayers] = useState<string[]>(['Freestyler A', 'Freestyler B']);
-  const [playerAvatars, setPlayerAvatars] = useState<string[]>(['🎤', '🔥']);
+  const [players, setPlayers] = useState<string[]>(() => {
+    const defaultName = userSession?.username || 'Freestyler A';
+    return [defaultName, 'Freestyler B'];
+  });
+  const [playerAvatars, setPlayerAvatars] = useState<string[]>(() => {
+    const defaultAvatar = userSession?.avatar_type === 'custom' && userSession?.custom_avatar_url 
+      ? userSession.custom_avatar_url 
+      : (userSession?.avatar || '🎤');
+    return [defaultAvatar, '🔥'];
+  });
   const [activeAvatarPicker, setActiveAvatarPicker] = useState<number | null>(null);
   const [roundsCount, setRoundsCount] = useState(3);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([
@@ -111,6 +119,30 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
   useEffect(() => {
     setIsSpotifyLinked(localStorage.getItem('barrz_spotify_linked') === 'true');
   }, [step]);
+
+  // Sincronizar el competidor 1 con los datos de perfil del usuario logueado
+  useEffect(() => {
+    if (userSession?.username) {
+      setPlayers(prev => {
+        if (prev[0] === 'Freestyler A' || prev[0] === '') {
+          const next = [...prev];
+          next[0] = userSession.username;
+          return next;
+        }
+        return prev;
+      });
+      setPlayerAvatars(prev => {
+        if (prev[0] === '🎤') {
+          const next = [...prev];
+          next[0] = userSession.avatar_type === 'custom' && userSession.custom_avatar_url 
+            ? userSession.custom_avatar_url 
+            : (userSession.avatar || '🎤');
+          return next;
+        }
+        return prev;
+      });
+    }
+  }, [userSession]);
 
   // Categorías de cartas disponibles
   const categoriesList = [
@@ -641,9 +673,9 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
                     className="player-avatar-btn"
                     onClick={() => setActiveAvatarPicker(activeAvatarPicker === index ? null : index)}
                     title="Elegir Avatar"
-                    style={{ padding: playerAvatars[index]?.startsWith('/') ? '0' : '' }}
+                    style={{ padding: (playerAvatars[index]?.startsWith('/') || playerAvatars[index]?.startsWith('data:image/')) ? '0' : '' }}
                   >
-                    {playerAvatars[index]?.startsWith('/') ? (
+                    {(playerAvatars[index]?.startsWith('/') || playerAvatars[index]?.startsWith('data:image/')) ? (
                       <img src={playerAvatars[index]} alt="" className="avatar-img" />
                     ) : (
                       playerAvatars[index] || '🎤'
@@ -680,9 +712,9 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
                           setPlayerAvatars(nextAvatars);
                           setActiveAvatarPicker(null);
                         }}
-                        style={{ padding: av.startsWith('/') ? '0' : '' }}
+                        style={{ padding: (av.startsWith('/') || av.startsWith('data:image/')) ? '0' : '' }}
                       >
-                        {av.startsWith('/') ? (
+                        {(av.startsWith('/') || av.startsWith('data:image/')) ? (
                           <img src={av} alt="" className="avatar-img-picker" />
                         ) : (
                           av
@@ -786,7 +818,7 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
             <div className="roulette-display">
               {isSpinning ? (
                 <span className="roulette-name spinning" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
-                  {playerAvatars[spinIndex]?.startsWith('/') ? (
+                  {(playerAvatars[spinIndex]?.startsWith('/') || playerAvatars[spinIndex]?.startsWith('data:image/')) ? (
                     <img src={playerAvatars[spinIndex]} alt="" style={{ width: '1.5rem', height: '1.5rem', borderRadius: '50%', objectFit: 'cover' }} />
                   ) : (
                     <span>{playerAvatars[spinIndex] || '🎤'}</span>
@@ -796,7 +828,7 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
               ) : startingPlayer ? (
                 <div className="winner-announcement scale-up" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                   <div style={{ width: '3.5rem', height: '3.5rem', borderRadius: '50%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0, 245, 171, 0.1)', border: '1px solid var(--neon-teal)' }}>
-                    {playerAvatars[players.indexOf(startingPlayer)]?.startsWith('/') ? (
+                    {(playerAvatars[players.indexOf(startingPlayer)]?.startsWith('/') || playerAvatars[players.indexOf(startingPlayer)]?.startsWith('data:image/')) ? (
                       <img src={playerAvatars[players.indexOf(startingPlayer)]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
                       <span style={{ fontSize: '1.8rem' }}>{playerAvatars[players.indexOf(startingPlayer)] || '🎤'}</span>

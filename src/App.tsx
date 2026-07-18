@@ -33,6 +33,10 @@ interface UserSession {
   email: string;
   loggedIn: boolean;
   method: string;
+  username?: string;
+  avatar?: string;
+  avatar_type?: string;
+  custom_avatar_url?: string | null;
 }
 
 interface GameSettings {
@@ -88,10 +92,18 @@ function App() {
             }
           });
           const data = await res.json();
-          
           if (res.ok && data.success) {
-            const session = savedSession ? JSON.parse(savedSession) : { email: data.email, loggedIn: true, method: 'email' };
+            const session: UserSession = {
+              email: data.email,
+              username: data.username,
+              avatar: data.avatar,
+              avatar_type: data.avatar_type,
+              custom_avatar_url: data.custom_avatar_url,
+              loggedIn: true,
+              method: savedSession ? JSON.parse(savedSession).method : 'email'
+            };
             setUserSession(session);
+            localStorage.setItem('barrz_session', JSON.stringify(session));
             setGameState('splash');
           } else {
             localStorage.removeItem('barrz_token');
@@ -144,8 +156,12 @@ function App() {
     if (data) {
       // Registrar sesión de usuario
       if (data.loggedIn) {
-        const session = {
+        const session: UserSession = {
           email: data.email,
+          username: data.username,
+          avatar: data.avatar,
+          avatar_type: data.avatar_type,
+          custom_avatar_url: data.custom_avatar_url,
           loggedIn: true,
           method: data.method
         };
@@ -311,7 +327,15 @@ function App() {
     <div className="app-root">
       {mainContent}
       <MenuAudioPlayer gameState={gameState} />
-      <UserProfilePanel gameState={gameState} userSession={userSession} onLogout={handleLogout} />
+      <UserProfilePanel 
+        gameState={gameState} 
+        userSession={userSession} 
+        onLogout={handleLogout} 
+        onProfileUpdate={(updatedSession) => {
+          setUserSession(updatedSession);
+          localStorage.setItem('barrz_session', JSON.stringify(updatedSession));
+        }}
+      />
       <div className="app-version-tag">v3.1</div>
     </div>
   );

@@ -1,14 +1,21 @@
-import React, { useState } from 'react';
-import { User, Settings, History, X, LogOut, Sliders, Flame, Award } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { User, Settings, History, X, LogOut, Sliders, Flame, Award, Edit2, Check, Camera, Trash2 } from 'lucide-react';
 import './UserProfilePanel.css';
+
+const getApiUrl = (path: string) => {
+  const isProd = import.meta.env.PROD;
+  const baseUrl = isProd ? window.location.origin : 'http://localhost:3001';
+  return `${baseUrl}${path}`;
+};
 
 interface UserProfilePanelProps {
   gameState: string;
   userSession: any;
   onLogout?: () => void;
+  onProfileUpdate?: (updatedSession: any) => void;
 }
 
-export const UserProfilePanel: React.FC<UserProfilePanelProps> = ({ gameState, userSession, onLogout }) => {
+export const UserProfilePanel: React.FC<UserProfilePanelProps> = ({ gameState, userSession, onLogout, onProfileUpdate }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'profile' | 'history' | 'settings'>('profile');
 
@@ -20,14 +27,176 @@ export const UserProfilePanel: React.FC<UserProfilePanelProps> = ({ gameState, u
   const [language, setLanguage] = useState(() => localStorage.getItem('barrz_language') || 'es');
   const [showSavedAlert, setShowSavedAlert] = useState(false);
 
+  // Estados para la edición de perfil
+  const [isEditingUsername, setIsEditingUsername] = useState(false);
+  const [tempUsername, setTempUsername] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   // Avatares disponibles (Emojis estilo Hip-Hop y Urbano)
   const avatars = ['🎤', '🔥', '🎧', '👑', '👽', '⚡', '🎸', '🚀', '💀', '💥', '🛹', '🕶️'];
 
-  // Guardar configuración en localStorage
-  const handleAvatarChange = (avatar: string) => {
+  // Sincronizar campo temporal de nombre cuando cambie la sesión
+  useEffect(() => {
+    if (userSession?.username) {
+      setTempUsername(userSession.username);
+    }
+  }, [userSession]);
+
+  // Determinar avatar actual y su tipo
+  const isCustomAvatar = userSession?.loggedIn
+    ? userSession.avatar_type === 'custom' && userSession.custom_avatar_url
+    : selectedAvatar.startsWith('data:image/');
+
+  const currentAvatarSrc = userSession?.loggedIn
+    ? (userSession.avatar_type === 'custom' ? userSession.custom_avatar_url : userSession.avatar)
+    : selectedAvatar;
+
+  // Guardar configuración en localStorage o en base de datos si está logueado
+  const handleAvatarChange = async (avatar: string) => {
     setSelectedAvatar(avatar);
     localStorage.setItem('barrz_user_avatar', avatar);
-    triggerSaveToast();
+
+    if (userSession?.loggedIn) {
+      try {
+        const token = localStorage.getItem('barrz_token');
+        const res = await fetch(getApiUrl('/api/auth/update-profile'), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            avatar: avatar,
+            avatar_type: 'preset',
+            custom_avatar_url: null
+          })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          if (onProfileUpdate) {
+            onProfileUpdate({
+              ...userSession,
+              avatar: data.user.avatar,
+              avatar_type: data.user.avatar_type,
+              custom_avatar_url: data.user.custom_avatar_url
+            });
+          }
+          triggerSaveToast();
+        }
+      } catch (err) {
+        console.error('Error al actualizar avatar:', err);
+      }
+    } else {
+      triggerSaveToast();
+    }
+  };
+
+  const handleCustomAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor selecciona un archivo de imagen.');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      alert('La imagen es demasiado grande. El límite es de 2MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const base64String = event.target?.result as string;
+      if (!base64String) return;
+
+      if (userSession?.loggedIn) {
+        try {
+          const token = localStorage.getItem('barrz_token');
+          const res = await fetch(getApiUrl('/api/auth/update-profile'), {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              avatar: 'crown',
+              avatar_type: 'custom',
+              custom_avatar_url: base64String
+            })
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            if (onProfileUpdate) {
+              onProfileUpdate({
+                ...userSession,
+                avatar: data.user.avatar,
+                avatar_type: data.user.avatar_type,
+                custom_avatar_url: data.user.custom_avatar_url
+              });
+            }
+            triggerSaveToast();
+          } else {
+            alert(data.error || 'Error al subir imagen.');
+          }
+        } catch (err) {
+          console.error('Error al subir avatar:', err);
+          alert('Error al conectar con el servidor.');
+        }
+      } else {
+        setSelectedAvatar(base64String);
+        localStorage.setItem('barrz_user_avatar', base64String);
+        triggerSaveToast();
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveCustomAvatar = async () => {
+    handleAvatarChange('🎤');
+  };
+
+  const handleSaveUsername = async () => {
+    if (tempUsername.trim().length < 3) {
+      setErrorMsg('Mínimo 3 caracteres.');
+      return;
+    }
+    setErrorMsg('');
+
+    if (userSession?.loggedIn) {
+      try {
+        const token = localStorage.getItem('barrz_token');
+        const res = await fetch(getApiUrl('/api/auth/update-profile'), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            username: tempUsername.trim()
+          })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          if (onProfileUpdate) {
+            onProfileUpdate({
+              ...userSession,
+              username: data.user.username
+            });
+          }
+          setIsEditingUsername(false);
+          triggerSaveToast();
+        } else {
+          setErrorMsg(data.error || 'Error al actualizar.');
+        }
+      } catch (err) {
+        console.error('Error al actualizar nombre de usuario:', err);
+        setErrorMsg('Error al conectar con el servidor.');
+      }
+    } else {
+      setIsEditingUsername(false);
+      triggerSaveToast();
+    }
   };
 
   const toggleSfx = () => {
@@ -61,7 +230,6 @@ export const UserProfilePanel: React.FC<UserProfilePanelProps> = ({ gameState, u
     setTimeout(() => setShowSavedAlert(false), 1500);
   };
 
-  // Ocultar botones y panel durante el juego activo
   if (gameState === 'game') return null;
 
   return (
@@ -82,8 +250,13 @@ export const UserProfilePanel: React.FC<UserProfilePanelProps> = ({ gameState, u
           className="btn-top-profile-action btn-user-trigger glow-pink-btn"
           onClick={() => { setActiveTab('profile'); setIsOpen(true); }}
           title="Perfil de Competidor"
+          style={{ padding: isCustomAvatar ? '0' : '' }}
         >
-          <span className="user-trigger-avatar">{selectedAvatar}</span>
+          {isCustomAvatar ? (
+            <img src={currentAvatarSrc} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+          ) : (
+            <span className="user-trigger-avatar">{currentAvatarSrc || '🎤'}</span>
+          )}
         </button>
       </div>
 
@@ -141,10 +314,99 @@ export const UserProfilePanel: React.FC<UserProfilePanelProps> = ({ gameState, u
           {activeTab === 'profile' && (
             <div className="drawer-tab-content fade-in">
               <div className="profile-hero-section">
-                <div className="profile-avatar-display">
-                  <span className="avatar-main-emoji">{selectedAvatar}</span>
+                
+                {/* Visualización de Avatar con opción de carga de foto */}
+                <div className="profile-avatar-display-wrapper">
+                  <div className="profile-avatar-display" style={{ padding: isCustomAvatar ? '0' : '' }}>
+                    {isCustomAvatar ? (
+                      <img src={currentAvatarSrc} alt="Avatar" className="avatar-img-round-full" />
+                    ) : (
+                      <span className="avatar-main-emoji">{currentAvatarSrc || '🎤'}</span>
+                    )}
+                  </div>
+                  
+                  {/* Botón flotante para subir foto */}
+                  <button 
+                    type="button" 
+                    className="btn-upload-avatar-trigger"
+                    onClick={() => fileInputRef.current?.click()}
+                    title="Subir foto de perfil"
+                  >
+                    <Camera size={14} />
+                  </button>
+                  
+                  {/* Botón flotante para eliminar foto si es custom */}
+                  {isCustomAvatar && (
+                    <button 
+                      type="button" 
+                      className="btn-remove-avatar-trigger"
+                      onClick={handleRemoveCustomAvatar}
+                      title="Quitar foto y usar predeterminado"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  )}
+
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    style={{ display: 'none' }} 
+                    accept="image/*"
+                    onChange={handleCustomAvatarUpload}
+                  />
                 </div>
-                <h3 className="profile-name-text font-base">{userSession?.email || 'Freestyler Google'}</h3>
+
+                {/* Nombre de usuario editable */}
+                <div className="profile-username-container">
+                  {isEditingUsername ? (
+                    <div className="username-edit-inline-row">
+                      <input 
+                        type="text" 
+                        value={tempUsername}
+                        onChange={(e) => setTempUsername(e.target.value)}
+                        maxLength={15}
+                        className="username-edit-input"
+                        placeholder="Nombre de usuario"
+                        autoFocus
+                      />
+                      <button 
+                        type="button" 
+                        className="btn-username-save"
+                        onClick={handleSaveUsername}
+                        title="Guardar nombre"
+                      >
+                        <Check size={16} />
+                      </button>
+                      <button 
+                        type="button" 
+                        className="btn-username-cancel"
+                        onClick={() => {
+                          setIsEditingUsername(false);
+                          setTempUsername(userSession?.username || '');
+                          setErrorMsg('');
+                        }}
+                        title="Cancelar"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="username-view-row">
+                      <h3 className="profile-name-text font-base">{userSession?.username || 'Invitado'}</h3>
+                      <button 
+                        type="button" 
+                        className="btn-username-edit-trigger"
+                        onClick={() => setIsEditingUsername(true)}
+                        title="Editar nombre de usuario"
+                      >
+                        <Edit2 size={14} />
+                      </button>
+                    </div>
+                  )}
+                  {errorMsg && <p className="username-error-inline">{errorMsg}</p>}
+                  <p className="profile-email-sub">{userSession?.email || 'Sesión local (Invitado)'}</p>
+                </div>
+
                 <span className="profile-rank-pill">
                   <Award size={12} />
                   <span>PROMESA DE LA RIMA</span>
@@ -159,7 +421,7 @@ export const UserProfilePanel: React.FC<UserProfilePanelProps> = ({ gameState, u
                     <button 
                       key={av} 
                       type="button" 
-                      className={`avatar-grid-item ${selectedAvatar === av ? 'selected' : ''}`}
+                      className={`avatar-grid-item ${(!isCustomAvatar && currentAvatarSrc === av) ? 'selected' : ''}`}
                       onClick={() => handleAvatarChange(av)}
                     >
                       {av}

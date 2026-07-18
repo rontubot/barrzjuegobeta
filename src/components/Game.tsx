@@ -508,7 +508,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
               </div>
               <div className="player-name" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ fontSize: '1.2rem', lineHeight: 1, width: '1.5rem', height: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderRadius: '50%' }}>
-                  {gameSettings?.avatars?.[activePlayer]?.startsWith('/') ? (
+                  {(gameSettings?.avatars?.[activePlayer]?.startsWith('/') || gameSettings?.avatars?.[activePlayer]?.startsWith('data:image/')) ? (
                     <img src={gameSettings?.avatars?.[activePlayer]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
                     gameSettings?.avatars?.[activePlayer] || '🎤'
@@ -528,8 +528,8 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
         {subState === 'ready' && (
           <div className="ready-screen-content glass-panel glow-teal text-center fade-in">
             <div className="ready-avatar-wrapper">
-              <div className="avatar-circle" style={{ fontSize: gameSettings?.avatars?.[activePlayer]?.startsWith('/') ? '0' : '3rem', overflow: 'hidden' }}>
-                {gameSettings?.avatars?.[activePlayer]?.startsWith('/') ? (
+              <div className="avatar-circle" style={{ fontSize: (gameSettings?.avatars?.[activePlayer]?.startsWith('/') || gameSettings?.avatars?.[activePlayer]?.startsWith('data:image/')) ? '0' : '3rem', overflow: 'hidden' }}>
+                {(gameSettings?.avatars?.[activePlayer]?.startsWith('/') || gameSettings?.avatars?.[activePlayer]?.startsWith('data:image/')) ? (
                   <img src={gameSettings?.avatars?.[activePlayer]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
                   gameSettings?.avatars?.[activePlayer] || '🎙'
@@ -953,7 +953,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                 <span className="voter-label font-base">Le toca votar a:</span>
                 <div className="voter-name-badge pulse-teal-anim" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ width: '1.5rem', height: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderRadius: '50%' }}>
-                    {gameSettings?.avatars?.[currentVoter]?.startsWith('/') ? (
+                    {(gameSettings?.avatars?.[currentVoter]?.startsWith('/') || gameSettings?.avatars?.[currentVoter]?.startsWith('data:image/')) ? (
                       <img src={gameSettings?.avatars?.[currentVoter]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
                       gameSettings?.avatars?.[currentVoter] || '🎤'
@@ -1067,7 +1067,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                   {ranksList[1].rank === 1 && <span className="winner-trophy">👑</span>}
                   <span className="podium-rank">{ranksList[1].rank}</span>
                   <span className={`podium-name ${ranksList[1].rank === 1 ? 'pink-text' : ''}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
-                    {gameSettings?.avatars?.[ranksList[1].name]?.startsWith('/') ? (
+                    {(gameSettings?.avatars?.[ranksList[1].name]?.startsWith('/') || gameSettings?.avatars?.[ranksList[1].name]?.startsWith('data:image/')) ? (
                       <img src={gameSettings?.avatars?.[ranksList[1].name]} alt="" style={{ width: '1.25rem', height: '1.25rem', borderRadius: '50%', objectFit: 'cover' }} />
                     ) : (
                       <span>{gameSettings?.avatars?.[ranksList[1].name] || '🎤'}</span>
@@ -1087,7 +1087,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                   <span className="winner-trophy">👑</span>
                   <span className="podium-rank">{ranksList[0].rank}</span>
                   <span className="podium-name pink-text" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
-                    {gameSettings?.avatars?.[ranksList[0].name]?.startsWith('/') ? (
+                    {(gameSettings?.avatars?.[ranksList[0].name]?.startsWith('/') || gameSettings?.avatars?.[ranksList[0].name]?.startsWith('data:image/')) ? (
                       <img src={gameSettings?.avatars?.[ranksList[0].name]} alt="" style={{ width: '1.25rem', height: '1.25rem', borderRadius: '50%', objectFit: 'cover' }} />
                     ) : (
                       <span>{gameSettings?.avatars?.[ranksList[0].name] || '🎤'}</span>
@@ -1107,7 +1107,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                   {ranksList[2].rank === 1 && <span className="winner-trophy">👑</span>}
                   <span className="podium-rank">{ranksList[2].rank}</span>
                   <span className={`podium-name ${ranksList[2].rank === 1 ? 'pink-text' : ranksList[2].rank === 2 ? 'teal-text' : ''}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
-                    {gameSettings?.avatars?.[ranksList[2].name]?.startsWith('/') ? (
+                    {(gameSettings?.avatars?.[ranksList[2].name]?.startsWith('/') || gameSettings?.avatars?.[ranksList[2].name]?.startsWith('data:image/')) ? (
                       <img src={gameSettings?.avatars?.[ranksList[2].name]} alt="" style={{ width: '1.25rem', height: '1.25rem', borderRadius: '50%', objectFit: 'cover' }} />
                     ) : (
                       <span>{gameSettings?.avatars?.[ranksList[2].name] || '🎤'}</span>
@@ -1143,7 +1143,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
                     <tr key={name} className={rank === 1 ? 'winner-row' : ''}>
                       <td>#{rank}</td>
                       <td style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
-                        {gameSettings?.avatars?.[name]?.startsWith('/') ? (
+                        {(gameSettings?.avatars?.[name]?.startsWith('/') || gameSettings?.avatars?.[name]?.startsWith('data:image/')) ? (
                           <img src={gameSettings?.avatars?.[name]} alt="" style={{ width: '1.25rem', height: '1.25rem', borderRadius: '50%', objectFit: 'cover' }} />
                         ) : (
                           <span style={{ marginRight: '8px' }}>{gameSettings?.avatars?.[name] || '🎤'}</span>
