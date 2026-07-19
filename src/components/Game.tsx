@@ -68,6 +68,21 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, onGameSaved, gameSetti
     return initialScores;
   });
 
+  // Registro detallado de turnos jugados (para historial detallado)
+  type TurnLog = {
+    round: number;
+    player: string;
+    challengeTitle: string;
+    challengeCategory: string;
+    challengePrompt: string;
+    beatName: string;
+    beatBpm: number;
+    votes: Record<string, number>;
+    totalScore: number;
+    isDeathmatch?: boolean;
+  };
+  const [gameLog, setGameLog] = useState<TurnLog[]>([]);
+
 
 
   // Estados de sub-pantallas del juego: 'ready' | 'playing' | 'scoring' | 'replica_announcement' | 'game_over'
@@ -191,7 +206,8 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, onGameSaved, gameSetti
               result: result,
               playerRank: playerRank,
               players: playerNames,
-              scores: scores
+              scores: scores,
+              details: gameLog
             })
           });
           const data = await res.json();
@@ -338,6 +354,22 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, onGameSaved, gameSetti
           [activePlayer]: scores[activePlayer] + totalTurnScore
         };
         setScores(newScores);
+
+        // Registrar turno en el log detallado
+        const turnEntry: TurnLog = {
+          round: currentRound,
+          player: activePlayer,
+          challengeTitle: activeChallenge?.title || selectedChallengeForTurn?.title || 'Sin desafío',
+          challengeCategory: activeChallenge?.category || selectedChallengeForTurn?.category || '',
+          challengePrompt: (activeChallenge as any)?.prompt || (selectedChallengeForTurn as any)?.prompt || '',
+          beatName: activeBeat?.name || selectedBeatForTurn?.name || 'Sin beat',
+          beatBpm: activeBeat?.bpm || selectedBeatForTurn?.bpm || 0,
+          votes: { ...nextVotes },
+          totalScore: totalTurnScore,
+          isDeathmatch: isReplicaActive
+        };
+        setGameLog(prev => [...prev, turnEntry]);
+
         advanceTurn(newScores);
         setIsVoterFading(false);
       }

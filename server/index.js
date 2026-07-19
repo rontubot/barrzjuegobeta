@@ -42,7 +42,7 @@ const getUserProfileData = async (userId) => {
 
     // 2. Obtener historial reciente (últimas 10 partidas)
     const historyRes = await db.query(
-      `SELECT id, mode, rounds_count, points, result, player_rank, players, scores, battle_date
+      `SELECT id, mode, rounds_count, points, result, player_rank, players, scores, details, battle_date
        FROM game_history
        WHERE user_id = $1
        ORDER BY battle_date DESC
@@ -66,6 +66,7 @@ const getUserProfileData = async (userId) => {
         playerRank: row.player_rank,
         players: row.players ? JSON.parse(row.players) : [],
         scores: row.scores ? JSON.parse(row.scores) : {},
+        details: row.details ? JSON.parse(row.details) : [],
         battleDate: row.battle_date
       }))
     };
@@ -468,7 +469,7 @@ app.post('/api/auth/save-game', async (req, res) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    const { mode, roundsCount, points, result, playerRank, players, scores } = req.body;
+    const { mode, roundsCount, points, result, playerRank, players, scores, details } = req.body;
 
     if (!mode || points === undefined || !result) {
       return res.status(400).json({ error: 'Faltan parámetros requeridos de la partida.' });
@@ -476,8 +477,8 @@ app.post('/api/auth/save-game', async (req, res) => {
 
     // Insertar partida en la tabla de historial
     await db.query(
-      `INSERT INTO game_history (user_id, mode, rounds_count, points, result, player_rank, players, scores)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      `INSERT INTO game_history (user_id, mode, rounds_count, points, result, player_rank, players, scores, details)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
       [
         decoded.id,
         mode,
@@ -486,7 +487,8 @@ app.post('/api/auth/save-game', async (req, res) => {
         result,
         playerRank || null,
         players ? JSON.stringify(players) : null,
-        scores ? JSON.stringify(scores) : null
+        scores ? JSON.stringify(scores) : null,
+        details ? JSON.stringify(details) : null
       ]
     );
 
