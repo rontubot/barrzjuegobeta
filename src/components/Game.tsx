@@ -162,11 +162,9 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
         const userSessionStr = localStorage.getItem('barrz_session');
         if (!userSessionStr) return;
         const userSession = JSON.parse(userSessionStr);
-        const myName = userSession.username || '';
 
-        // Determinar jugador al cual asociar los puntos
-        const hasMe = myName ? playerNames.includes(myName) : false;
-        const targetPlayer = hasMe ? myName : playerNames[0];
+        // El usuario logueado en la aplicación es siempre el Jugador 1 (índice 0)
+        const targetPlayer = playerNames[0];
         const userScore = scores[targetPlayer] || 0;
         
         let result = 'complete';
