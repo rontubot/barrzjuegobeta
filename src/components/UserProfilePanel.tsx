@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { User, Settings, History, X, LogOut, Sliders, Flame, Award, Edit2, Check, Camera, Trash2, ChevronDown, ChevronUp, Music, Swords, Star } from 'lucide-react';
+import { User, Settings, History, X, LogOut, Sliders, Flame, Award, Edit2, Check, Camera, Trash2 } from 'lucide-react';
+import { BattleDetailView } from './BattleDetailView';
 import './UserProfilePanel.css';
 
 const getApiUrl = (path: string) => {
@@ -33,8 +34,8 @@ export const UserProfilePanel: React.FC<UserProfilePanelProps> = ({ gameState, u
   const [errorMsg, setErrorMsg] = useState('');
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Estado para expandir detalle de partida en historial
-  const [expandedHistoryId, setExpandedHistoryId] = useState<number | null>(null);
+  // Estado para la pantalla de detalle de partida
+  const [selectedBattle, setSelectedBattle] = useState<any | null>(null);
 
   // Avatares disponibles (Emojis estilo Hip-Hop y Urbano)
   const avatars = ['🎤', '🔥', '🎧', '👑', '👽', '⚡', '🎸', '🚀', '💀', '💥', '🛹', '🕶️'];
@@ -520,23 +521,6 @@ export const UserProfilePanel: React.FC<UserProfilePanelProps> = ({ gameState, u
                       ? `Cypher Solitario (${item.roundsCount} ${item.roundsCount === 1 ? 'ronda' : 'rondas'})`
                       : `Batalla Grupal (${item.roundsCount} ${item.roundsCount === 1 ? 'ronda' : 'rondas'})`;
 
-                    const isExpanded = expandedHistoryId === item.id;
-                    const hasDetails = item.details && item.details.length > 0;
-
-                    // Scores ordenados para el marcador final
-                    const sortedScores = item.scores
-                      ? Object.entries(item.scores as Record<string, number>).sort((a, b) => b[1] - a[1])
-                      : [];
-
-                    // Categoría con ícono
-                    const categoryLabel: Record<string, string> = {
-                      palabras: '🔤 Palabras',
-                      tematicas: '🎭 Temáticas',
-                      cypher: '🎤 Cypher',
-                      terminaciones: '🎵 Terminaciones',
-                      beatbox: '🥁 Beatbox'
-                    };
-
                     return (
                       <div key={item.id} className={`history-card ${cardClass}`}>
                         <div className="history-card-header">
@@ -550,88 +534,12 @@ export const UserProfilePanel: React.FC<UserProfilePanelProps> = ({ gameState, u
                             +{item.points} Pts
                           </span>
                         </div>
-
-                        {/* Botón expandir */}
-                        {hasDetails && (
-                          <button
-                            className="history-detail-toggle"
-                            onClick={() => setExpandedHistoryId(isExpanded ? null : item.id)}
-                          >
-                            {isExpanded ? <><ChevronUp size={12} /> Ocultar detalle</> : <><ChevronDown size={12} /> Ver detalle completo</>}
-                          </button>
-                        )}
-
-                        {/* Panel expandido de detalle */}
-                        {isExpanded && hasDetails && (
-                          <div className="history-detail-panel">
-
-                            {/* Marcador final */}
-                            {sortedScores.length > 0 && (
-                              <div className="detail-section">
-                                <div className="detail-section-title"><Swords size={13} /> Marcador Final</div>
-                                <div className="detail-scoreboard">
-                                  {sortedScores.map(([name, score], idx) => (
-                                    <div key={name} className={`detail-score-row ${idx === 0 ? 'score-first' : ''}`}>
-                                      <span className="score-rank">{idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉'}</span>
-                                      <span className="score-player-name">{name}</span>
-                                      <span className="score-total-pts">{score} pts</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Turnos detallados */}
-                            <div className="detail-section">
-                              <div className="detail-section-title"><Star size={13} /> Turnos Jugados</div>
-                              {item.details.map((turn: any, idx: number) => (
-                                <div key={idx} className={`detail-turn-card ${turn.isDeathmatch ? 'deathmatch-turn' : ''}`}>
-                                  <div className="detail-turn-header">
-                                    <span className="turn-round-badge">
-                                      {turn.isDeathmatch ? '⚔️ RÉPLICA' : `Ronda ${turn.round}`}
-                                    </span>
-                                    <span className="turn-player-name">{turn.player}</span>
-                                    <span className="turn-total-score">+{turn.totalScore} pts</span>
-                                  </div>
-
-                                  {/* Desafío */}
-                                  <div className="detail-turn-challenge">
-                                    <span className="detail-chip challenge-chip">
-                                      {categoryLabel[turn.challengeCategory] || turn.challengeCategory}
-                                    </span>
-                                    <span className="detail-challenge-title">"{turn.challengeTitle}"</span>
-                                    {turn.challengePrompt && (
-                                      <span className="detail-challenge-prompt">{turn.challengePrompt}</span>
-                                    )}
-                                  </div>
-
-                                  {/* Beat */}
-                                  {turn.beatName && turn.beatName !== 'Sin beat' && (
-                                    <div className="detail-turn-beat">
-                                      <Music size={11} className="beat-icon" />
-                                      <span className="detail-beat-name">{turn.beatName}</span>
-                                      {turn.beatBpm > 0 && <span className="detail-beat-bpm">{turn.beatBpm} BPM</span>}
-                                    </div>
-                                  )}
-
-                                  {/* Votos individuales */}
-                                  {turn.votes && Object.keys(turn.votes).length > 0 && (
-                                    <div className="detail-turn-votes">
-                                      {Object.entries(turn.votes as Record<string, number>).map(([voter, pts]) => (
-                                        <div key={voter} className="vote-entry">
-                                          <span className="vote-voter">{voter}</span>
-                                          <span className="vote-stars">{'⭐'.repeat(Math.min(pts, 5))}</span>
-                                          <span className="vote-pts">{pts} pts</span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-
-                          </div>
-                        )}
+                        <button
+                          className="history-detail-toggle"
+                          onClick={() => setSelectedBattle(item)}
+                        >
+                          Ver detalles de la batalla →
+                        </button>
                       </div>
                     );
                   })
@@ -757,6 +665,14 @@ export const UserProfilePanel: React.FC<UserProfilePanelProps> = ({ gameState, u
         </div>
 
       </div>
+
+      {/* Pantalla completa de detalle de la batalla */}
+      {selectedBattle && (
+        <BattleDetailView 
+          battle={selectedBattle} 
+          onBack={() => setSelectedBattle(null)} 
+        />
+      )}
     </>
   );
 };
