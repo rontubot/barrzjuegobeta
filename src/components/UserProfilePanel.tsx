@@ -100,56 +100,78 @@ export const UserProfilePanel: React.FC<UserProfilePanelProps> = ({ gameState, u
       alert('Por favor selecciona un archivo de imagen.');
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-      alert('La imagen es demasiado grande. El límite es de 2MB.');
+    if (file.size > 10 * 1024 * 1024) {
+      alert('La imagen es demasiado grande. El límite es de 10MB.');
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      const base64String = event.target?.result as string;
-      if (!base64String) return;
+    // Comprimir con canvas antes de subir (max 300x300, JPEG 80%)
+    const compressImage = (file: File): Promise<string> => {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const objectUrl = URL.createObjectURL(file);
+        img.onload = () => {
+          URL.revokeObjectURL(objectUrl);
+          const MAX_SIZE = 300;
+          let { width, height } = img;
+          if (width > height) {
+            if (width > MAX_SIZE) { height = Math.round(height * MAX_SIZE / width); width = MAX_SIZE; }
+          } else {
+            if (height > MAX_SIZE) { width = Math.round(width * MAX_SIZE / height); height = MAX_SIZE; }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) { reject(new Error('Canvas not supported')); return; }
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.8));
+        };
+        img.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error('Failed to load image')); };
+        img.src = objectUrl;
+      });
+    };
+
+    try {
+      const base64String = await compressImage(file);
 
       if (userSession?.loggedIn) {
-        try {
-          const token = localStorage.getItem('barrz_token');
-          const res = await fetch(getApiUrl('/api/auth/update-profile'), {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-              avatar: 'crown',
-              avatar_type: 'custom',
-              custom_avatar_url: base64String
-            })
-          });
-          const data = await res.json();
-          if (res.ok && data.success) {
-            if (onProfileUpdate) {
-              onProfileUpdate({
-                ...userSession,
-                avatar: data.user.avatar,
-                avatar_type: data.user.avatar_type,
-                custom_avatar_url: data.user.custom_avatar_url
-              });
-            }
-            triggerSaveToast();
-          } else {
-            alert(data.error || 'Error al subir imagen.');
+        const token = localStorage.getItem('barrz_token');
+        const res = await fetch(getApiUrl('/api/auth/update-profile'), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            avatar: 'crown',
+            avatar_type: 'custom',
+            custom_avatar_url: base64String
+          })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          if (onProfileUpdate) {
+            onProfileUpdate({
+              ...userSession,
+              avatar: data.user.avatar,
+              avatar_type: data.user.avatar_type,
+              custom_avatar_url: data.user.custom_avatar_url
+            });
           }
-        } catch (err) {
-          console.error('Error al subir avatar:', err);
-          alert('Error al conectar con el servidor.');
+          triggerSaveToast();
+        } else {
+          alert(data.error || 'Error al subir imagen.');
         }
       } else {
         setSelectedAvatar(base64String);
         localStorage.setItem('barrz_user_avatar', base64String);
         triggerSaveToast();
       }
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+      console.error('Error al subir avatar:', err);
+      alert('Error al procesar la imagen. Intenta con otra foto.');
+    }
   };
 
   const handleRemoveCustomAvatar = async () => {

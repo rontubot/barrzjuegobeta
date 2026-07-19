@@ -35,5 +35,9 @@ CREATE TABLE IF NOT EXISTS game_history (
   player_rank INT,
   players TEXT,
   scores TEXT,
+  details TEXT,
   battle_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Migración para la columna details en game_history existente
+ALTER TABLE game_history ADD COLUMN IF NOT EXISTS details TEXT;
