@@ -24,6 +24,7 @@ const DEATHMATCH_THEMES = [
 
 interface GameProps {
   onBackToMenu: () => void;
+  onGameSaved?: (stats: any, history: any) => void;
   gameSettings?: {
     mode: 'solo' | 'multiplayer';
     subMode?: 'random' | 'custom';
@@ -37,7 +38,7 @@ interface GameProps {
   };
 }
 
-export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
+export const Game: React.FC<GameProps> = ({ onBackToMenu, onGameSaved, gameSettings }) => {
   // Configuración del juego (valores de props o valores por defecto)
   const mode = gameSettings?.mode || 'multiplayer';
   const playerNames = gameSettings?.players || ['Freestyler A', 'Freestyler B'];
@@ -197,11 +198,13 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, gameSettings }) => {
           if (res.ok && data.success) {
             console.log('Resultados de batalla guardados en base de datos.');
             if (data.stats && data.history) {
-              localStorage.setItem('barrz_session', JSON.stringify({
+              const updatedSession = {
                 ...userSession,
                 stats: data.stats,
                 history: data.history
-              }));
+              };
+              localStorage.setItem('barrz_session', JSON.stringify(updatedSession));
+              if (onGameSaved) onGameSaved(data.stats, data.history);
             }
           }
         } catch (err) {

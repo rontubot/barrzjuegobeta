@@ -37,6 +37,23 @@ interface UserSession {
   avatar?: string;
   avatar_type?: string;
   custom_avatar_url?: string | null;
+  stats?: {
+    totalBattles: number;
+    wins: number;
+    winRate: number;
+    maxPoints: number;
+  };
+  history?: Array<{
+    id: number;
+    mode: string;
+    roundsCount: number;
+    points: number;
+    result: string;
+    playerRank?: number;
+    players: string[];
+    scores: Record<string, number>;
+    battleDate: string;
+  }>;
 }
 
 interface GameSettings {
@@ -99,6 +116,8 @@ function App() {
               avatar: data.avatar,
               avatar_type: data.avatar_type,
               custom_avatar_url: data.custom_avatar_url,
+              stats: data.stats,
+              history: data.history,
               loggedIn: true,
               method: savedSession ? JSON.parse(savedSession).method : 'email'
             };
@@ -162,6 +181,8 @@ function App() {
           avatar: data.avatar,
           avatar_type: data.avatar_type,
           custom_avatar_url: data.custom_avatar_url,
+          stats: data.stats,
+          history: data.history,
           loggedIn: true,
           method: data.method
         };
@@ -319,6 +340,14 @@ function App() {
         key={`${gameSettings.players.join(',')}-${gameSettings.mode}-${gameSettings.roundsCount}`}
         onBackToMenu={handleBackToMenu}
         gameSettings={gameSettings}
+        onGameSaved={(stats, history) => {
+          setUserSession(prev => {
+            if (!prev) return prev;
+            const updated = { ...prev, stats, history };
+            localStorage.setItem('barrz_session', JSON.stringify(updated));
+            return updated;
+          });
+        }}
       />
     );
   }
