@@ -505,6 +505,8 @@ app.post('/api/auth/save-game', async (req, res) => {
     console.error('Error al guardar partida:', err);
     res.status(401).json({ error: 'Token inválido o expirado.' });
   }
+});
+
 // 8. SPOTIFY INTEGRATION — AUTHENTICATION ROUTING
 
 // Endpoint para iniciar la autenticación de Spotify
