@@ -28,7 +28,7 @@ export const UserProfilePanel: React.FC<UserProfilePanelProps> = ({ gameState, u
   const [language, setLanguage] = useState(() => localStorage.getItem('barrz_language') || 'es');
   const [lobbyVolume, setLobbyVolume] = useState<number>(() => {
     const saved = localStorage.getItem('barrz_lobby_volume');
-    return saved !== null ? parseFloat(saved) : 0.5;
+    return saved !== null ? parseFloat(saved) : 0.35;
   });
   const [showSavedAlert, setShowSavedAlert] = useState(false);
 

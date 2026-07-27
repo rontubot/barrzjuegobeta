@@ -28,10 +28,10 @@ export const MenuAudioPlayer: React.FC<MenuAudioPlayerProps> = ({ gameState }) =
     isPlayingRef.current = isPlaying;
   }, [isPlaying]);
 
-  // Volumen por defecto de la app: 50%
+  // Volumen por defecto de la app: 35%
   const [volume, setVolume] = useState<number>(() => {
     const saved = localStorage.getItem('barrz_lobby_volume');
-    return saved !== null ? parseFloat(saved) : 0.5;
+    return saved !== null ? parseFloat(saved) : 0.35;
   });
   const [isMuted] = useState<boolean>(false);
   
