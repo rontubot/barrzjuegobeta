@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, RefreshCw, Volume2, Play, Pause, Square, Music, QrCode, Sparkles, User, SkipForward, Home, RotateCcw, ChevronLeft, ChevronRight, Gavel } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Volume2, Play, Pause, Square, Music, QrCode, Sparkles, User, SkipForward, Home, RotateCcw, ChevronLeft, ChevronRight, ClipboardCheck } from 'lucide-react';
 import { BEATS_DECK, CHALLENGES_DECK } from '../data/cards';
 import type { BeatCard, ChallengeCard } from '../data/cards';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -1044,7 +1044,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, onGameSaved, gameSetti
           <div className="scoring-screen-content glass-panel glow-pink text-center fade-in">
 
             <div className="scoring-icon-wrapper">
-              <Gavel size={32} className="pink-text" />
+              <ClipboardCheck size={32} className="pink-text" />
             </div>
 
             <span className="scoring-tag">VOTACIÓN DE JUGADORES</span>
