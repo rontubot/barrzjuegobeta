@@ -42,6 +42,7 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
     'beatbox',
     'versus'
   ]);
+  const [allowRandomFreestyle, setAllowRandomFreestyle] = useState(false);
 
   // Configuración de modo individual
   const [individualSubMode, setIndividualSubMode] = useState<'random' | 'custom'>('random');
@@ -808,6 +809,21 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
             ))}
           </div>
 
+          {/* Freestyle Libre Aleatorio Toggle */}
+          <div 
+            className={`category-item-card ${allowRandomFreestyle ? 'active' : ''}`}
+            style={{ marginTop: '20px', borderColor: allowRandomFreestyle ? 'var(--neon-pink)' : 'var(--glass-border)' }}
+            onClick={() => setAllowRandomFreestyle(!allowRandomFreestyle)}
+          >
+            <div className="checkbox-indicator" style={{ backgroundColor: allowRandomFreestyle ? 'var(--neon-pink)' : 'transparent', borderColor: allowRandomFreestyle ? 'var(--neon-pink)' : 'var(--text-muted)' }}>
+              {allowRandomFreestyle && <Check size={12} />}
+            </div>
+            <div className="category-card-info">
+              <h4>🎭 Freestyle Libre Aleatorio</h4>
+              <p>Tiene una probabilidad de salir en turnos y freestylear por todo el beat.</p>
+            </div>
+          </div>
+
           {/* Sorteo de Quién Empieza */}
           <div className="roulette-box glass-panel">
             <h3>🎰 ¿QUIÉN EMPIEZA EL JUEGO?</h3>
@@ -866,7 +882,8 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
                 avatars: avatarsMap,
                 roundsCount,
                 selectedCategories,
-                startingPlayer: finalStartingPlayer
+                startingPlayer: finalStartingPlayer,
+                allowRandomFreestyle
               });
             }}
             disabled={isSpinning}

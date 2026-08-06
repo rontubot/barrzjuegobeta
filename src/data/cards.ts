@@ -188,114 +188,114 @@ export const CHALLENGES_DECK: ChallengeCard[] = [
   {
     id: 'challenge-tematicas-1',
     category: 'tematicas',
-    title: 'Temática 1',
+    title: 'Villanos',
     description: 'Desafío de temática',
-    imageUrl: '/CARTAS DESAFIO/Tematica 1.png'
+    imageUrl: '/CARTAS DESAFIO/tematica villanos.png'
   },
   {
     id: 'challenge-tematicas-2',
     category: 'tematicas',
-    title: 'Temática 2',
+    title: 'Videojuegos',
     description: 'Desafío de temática',
-    imageUrl: '/CARTAS DESAFIO/Tematica 2.png'
+    imageUrl: '/CARTAS DESAFIO/tematica videojuegos.png'
   },
   {
     id: 'challenge-tematicas-3',
     category: 'tematicas',
-    title: 'Temática 3',
+    title: 'Superhéroes',
     description: 'Desafío de temática',
-    imageUrl: '/CARTAS DESAFIO/Tematica 3.png'
+    imageUrl: '/CARTAS DESAFIO/tematica superheroes.png'
   },
   {
     id: 'challenge-tematicas-4',
     category: 'tematicas',
-    title: 'Temática 4',
+    title: 'Películas',
     description: 'Desafío de temática',
-    imageUrl: '/CARTAS DESAFIO/Tematica 4.png'
+    imageUrl: '/CARTAS DESAFIO/tematicas peliculas.png'
   },
   {
     id: 'challenge-tematicas-5',
     category: 'tematicas',
-    title: 'Temática 5',
+    title: 'Países',
     description: 'Desafío de temática',
-    imageUrl: '/CARTAS DESAFIO/Tematica 5.png'
+    imageUrl: '/CARTAS DESAFIO/tematica paises.png'
   },
   {
     id: 'challenge-tematicas-6',
     category: 'tematicas',
-    title: 'Temática 6',
+    title: 'Marcas',
     description: 'Desafío de temática',
-    imageUrl: '/CARTAS DESAFIO/Tematica 6.png'
+    imageUrl: '/CARTAS DESAFIO/tematica marcas.png'
   },
   {
     id: 'challenge-tematicas-7',
     category: 'tematicas',
-    title: 'Temática 7',
+    title: 'Fútbol',
     description: 'Desafío de temática',
-    imageUrl: '/CARTAS DESAFIO/Tematica 7.png'
+    imageUrl: '/CARTAS DESAFIO/tematica futbol.png'
   },
   {
     id: 'challenge-tematicas-8',
     category: 'tematicas',
-    title: 'Temática 8',
+    title: 'En el Fin del Mundo',
     description: 'Desafío de temática',
-    imageUrl: '/CARTAS DESAFIO/Tematica 8.png'
+    imageUrl: '/CARTAS DESAFIO/tematica en el fin del mundo.png'
   },
   {
     id: 'challenge-tematicas-9',
     category: 'tematicas',
-    title: 'Temática 9',
+    title: 'El Pasado',
     description: 'Desafío de temática',
-    imageUrl: '/CARTAS DESAFIO/Tematica 9.png'
+    imageUrl: '/CARTAS DESAFIO/tematica el pasado.png'
   },
   {
     id: 'challenge-tematicas-10',
     category: 'tematicas',
-    title: 'Temática 10',
+    title: 'De dónde venís y a dónde vas',
     description: 'Desafío de temática',
-    imageUrl: '/CARTAS DESAFIO/Tematica 10.png'
+    imageUrl: '/CARTAS DESAFIO/tematica de donde venis y a donde vas.png'
   },
   {
     id: 'challenge-tematicas-11',
     category: 'tematicas',
-    title: 'Temática 11',
+    title: 'Cuáles son tus sueños',
     description: 'Desafío de temática',
-    imageUrl: '/CARTAS DESAFIO/Tematica 11.png'
+    imageUrl: '/CARTAS DESAFIO/tematica cuales son tus sueños.png'
   },
   {
     id: 'challenge-tematicas-12',
     category: 'tematicas',
-    title: 'Temática 12',
+    title: 'Comida',
     description: 'Desafío de temática',
-    imageUrl: '/CARTAS DESAFIO/Tematica 12.png'
+    imageUrl: '/CARTAS DESAFIO/tematica comida.png'
   },
   {
     id: 'challenge-tematicas-13',
     category: 'tematicas',
-    title: 'Temática 13',
+    title: 'Bandas de Rock',
     description: 'Desafío de temática',
-    imageUrl: '/CARTAS DESAFIO/Tematica 13.png'
+    imageUrl: '/CARTAS DESAFIO/tematica bandas de rock.png'
   },
   {
     id: 'challenge-tematicas-14',
     category: 'tematicas',
-    title: 'Temática 14',
+    title: 'Año 3000',
     description: 'Desafío de temática',
-    imageUrl: '/CARTAS DESAFIO/Tematica 14.png'
+    imageUrl: '/CARTAS DESAFIO/tematica año 3000.png'
   },
   {
     id: 'challenge-tematicas-15',
     category: 'tematicas',
-    title: 'Temática 15',
+    title: 'Animales',
     description: 'Desafío de temática',
-    imageUrl: '/CARTAS DESAFIO/Tematica 15.png'
+    imageUrl: '/CARTAS DESAFIO/tematica animales.png'
   },
   {
     id: 'challenge-tematicas-16',
     category: 'tematicas',
-    title: 'Temática 16',
+    title: 'Qué harías con un millón de dólares',
     description: 'Desafío de temática',
-    imageUrl: '/CARTAS DESAFIO/Tematica 16.png'
+    imageUrl: '/CARTAS DESAFIO/tematica que harias con un millon de dolares.png'
   },
   {
     id: 'challenge-tematicas-libre',
@@ -307,37 +307,37 @@ export const CHALLENGES_DECK: ChallengeCard[] = [
   {
     id: 'challenge-terminaciones-1',
     category: 'terminaciones',
-    title: 'Terminaciones 1',
+    title: 'Carlos',
     description: 'Desafío de terminaciones',
-    imageUrl: '/CARTAS DESAFIO/terminaciones 1.png'
+    imageUrl: '/CARTAS DESAFIO/terminaciones carlos.png'
   },
   {
     id: 'challenge-terminaciones-2',
     category: 'terminaciones',
-    title: 'Terminaciones 2',
+    title: 'Esdrújulas',
     description: 'Desafío de terminaciones',
-    imageUrl: '/CARTAS DESAFIO/terminaciones 2.png'
+    imageUrl: '/CARTAS DESAFIO/terminaciones esdrujulas.png'
   },
   {
     id: 'challenge-terminaciones-3',
     category: 'terminaciones',
-    title: 'Terminaciones 3',
+    title: 'EO / IO',
     description: 'Desafío de terminaciones',
-    imageUrl: '/CARTAS DESAFIO/terminaciones 3.png'
+    imageUrl: '/CARTAS DESAFIO/terminaciones eo io.png'
   },
   {
     id: 'challenge-terminaciones-4',
     category: 'terminaciones',
-    title: 'Terminaciones 4',
+    title: 'ION',
     description: 'Desafío de terminaciones',
-    imageUrl: '/CARTAS DESAFIO/terminaciones 4.png'
+    imageUrl: '/CARTAS DESAFIO/terminaciones ion.png'
   },
   {
     id: 'challenge-terminaciones-5',
     category: 'terminaciones',
-    title: 'Terminaciones 5',
+    title: 'A / AS',
     description: 'Desafío de terminaciones',
-    imageUrl: '/CARTAS DESAFIO/terminaciones 5.png'
+    imageUrl: '/CARTAS DESAFIO/terminaciones a as.png'
   },
   {
     id: 'challenge-beatbox-1',
@@ -366,36 +366,36 @@ export const CHALLENGES_DECK: ChallengeCard[] = [
   {
     id: 'challenge-versus-1',
     category: 'versus',
-    title: 'Versus 1',
+    title: 'Villano vs Superhéroe',
     description: 'Desafío versus',
-    imageUrl: '/CARTAS DESAFIO/versus 1.png'
+    imageUrl: '/CARTAS DESAFIO/versus villano vs superhero.png'
   },
   {
     id: 'challenge-versus-2',
     category: 'versus',
-    title: 'Versus 2',
+    title: 'Pasado vs Futuro',
     description: 'Desafío versus',
-    imageUrl: '/CARTAS DESAFIO/versus 2.png'
+    imageUrl: '/CARTAS DESAFIO/versus pasado vs futuro.png'
   },
   {
     id: 'challenge-versus-3',
     category: 'versus',
-    title: 'Versus 3',
+    title: 'Messi vs Maradona',
     description: 'Desafío versus',
-    imageUrl: '/CARTAS DESAFIO/versus 3.png'
+    imageUrl: '/CARTAS DESAFIO/versus messi vs maradona.png'
   },
   {
     id: 'challenge-versus-4',
     category: 'versus',
-    title: 'Versus 4',
+    title: 'Dinero vs Amor',
     description: 'Desafío versus',
-    imageUrl: '/CARTAS DESAFIO/versus 4.png'
+    imageUrl: '/CARTAS DESAFIO/versus dinero vs amor.png'
   },
   {
     id: 'challenge-versus-5',
     category: 'versus',
-    title: 'Versus 5',
+    title: 'Campo vs Ciudad',
     description: 'Desafío versus',
-    imageUrl: '/CARTAS DESAFIO/versus 5.png'
+    imageUrl: '/CARTAS DESAFIO/versus campo vs ciudad.png'
   }
 ];

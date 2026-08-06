@@ -35,6 +35,7 @@ interface GameProps {
     startingPlayer: string;
     initialBeat?: BeatCard | null;
     initialChallenge?: ChallengeCard | null;
+    allowRandomFreestyle?: boolean;
   };
 }
 
@@ -235,9 +236,11 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, onGameSaved, gameSetti
   useEffect(() => {
     let interval: any = null;
     if (spotifyPlaying && subState === 'playing') {
+      const isFreestyleLibre = activeChallenge?.id === 'challenge-tematicas-libre';
+      const limit = isFreestyleLibre ? 180 : 60;
       interval = setInterval(() => {
         setSpotifyProgress(prev => {
-          if (prev >= 60) return 0;
+          if (prev >= limit) return 0;
           return prev + 1;
         });
       }, 1000);
@@ -247,7 +250,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, onGameSaved, gameSetti
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [spotifyPlaying, subState]);
+  }, [spotifyPlaying, subState, activeChallenge]);
 
   // Resetear progreso al cambiar de beat o turno
   useEffect(() => {
@@ -309,6 +312,15 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, onGameSaved, gameSetti
   const drawChallenge = (delay = 150) => {
     setChallengeFlipped(false);
     setTimeout(() => {
+      // Si está activa la opción de freestyle libre aleatorio en multijugador, hay un 15% de probabilidad de forzarlo
+      if (mode === 'multiplayer' && gameSettings?.allowRandomFreestyle && Math.random() < 0.15) {
+        const libreCard = CHALLENGES_DECK.find(c => c.id === 'challenge-tematicas-libre');
+        if (libreCard) {
+          setActiveChallenge(libreCard);
+          setChallengeFlipped(true);
+          return;
+        }
+      }
       const randomIndex = Math.floor(Math.random() * availableChallenges.length);
       setActiveChallenge(availableChallenges[randomIndex]);
       setChallengeFlipped(true);
@@ -1003,13 +1015,22 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, onGameSaved, gameSetti
                                   <span className="spotify-time font-base">
                                     {Math.floor(spotifyProgress / 60)}:{(spotifyProgress % 60).toString().padStart(2, '0')}
                                   </span>
-                                  <div className="spotify-progress-bar-wrap">
-                                    <div 
-                                      className="spotify-progress-bar-fill" 
-                                      style={{ width: `${(spotifyProgress / 60) * 100}%` }}
-                                    ></div>
-                                  </div>
-                                  <span className="spotify-time font-base">1:00</span>
+                                  {(() => {
+                                    const isFreestyleLibre = activeChallenge?.id === 'challenge-tematicas-libre';
+                                    const limit = isFreestyleLibre ? 180 : 60;
+                                    const limitStr = isFreestyleLibre ? '3:00' : '1:00';
+                                    return (
+                                      <>
+                                        <div className="spotify-progress-bar-wrap">
+                                          <div 
+                                            className="spotify-progress-bar-fill" 
+                                            style={{ width: `${(spotifyProgress / limit) * 100}%` }}
+                                          ></div>
+                                        </div>
+                                        <span className="spotify-time font-base">{limitStr}</span>
+                                      </>
+                                    );
+                                  })()}
                                 </div>
 
                                 <div className="spotify-controls">
