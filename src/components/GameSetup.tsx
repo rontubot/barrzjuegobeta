@@ -38,10 +38,9 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
   const [selectedCategories, setSelectedCategories] = useState<string[]>([
     'palabras',
     'tematicas',
-    'cypher',
     'terminaciones',
     'beatbox',
-    'sacrificio'
+    'versus'
   ]);
 
   // Configuración de modo individual
@@ -144,14 +143,12 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
     }
   }, [userSession]);
 
-  // Categorías de cartas disponibles
   const categoriesList = [
-    { id: 'palabras', label: 'Palabras', desc: 'Rimar usando las 4 palabras de tu lado' },
-    { id: 'tematicas', label: 'Temáticas', desc: 'Desarrollar rimas sobre un tema profundo' },
-    { id: 'cypher', label: 'Cypher', desc: 'Ronda libre en equipo compartiendo micro' },
-    { id: 'terminaciones', label: 'Terminaciones', desc: 'Patrones obligatorios como -ER o -AR' },
-    { id: 'beatbox', label: 'Beatbox', desc: 'Base humana con cronómetro de 60 segundos' },
-    { id: 'sacrificio', label: 'El Sacrificio', desc: 'Ronda final de máxima entrega y energía' }
+    { id: 'palabras', label: 'Palabras', desc: 'Desafíos de palabras' },
+    { id: 'tematicas', label: 'Temáticas', desc: 'Desafíos de temáticas' },
+    { id: 'terminaciones', label: 'Terminaciones', desc: 'Desafíos de terminaciones' },
+    { id: 'beatbox', label: 'Beatbox', desc: 'Desafíos de beatbox con cronómetro' },
+    { id: 'versus', label: 'Versus', desc: 'Desafíos versus' }
   ];
 
   // Manejo de nombres de jugadores
