@@ -769,77 +769,6 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, onGameSaved, gameSetti
                                 alt={activeChallenge.title} 
                                 style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
                               />
-                              
-                              {activeChallenge.category === 'beatbox' && (
-                                <div className="timer-overlay" style={{
-                                  position: 'absolute',
-                                  bottom: '20px',
-                                  left: '50%',
-                                  transform: 'translateX(-50%)',
-                                  width: '90%',
-                                  zIndex: 10
-                                }}>
-                                  <div className="timer-widget glass-panel" style={{ margin: 0, padding: '10px', background: 'rgba(15, 16, 21, 0.85)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                                    <div className={`timer-display ${timerSeconds <= 10 && timerRunning ? 'critical-time' : ''}`} style={{ marginBottom: '8px' }}>
-                                      <span className="timer-digits" style={{ fontSize: '1.4rem' }}>
-                                        {Math.floor(timerSeconds / 60)}:{(timerSeconds % 60).toString().padStart(2, '0')}
-                                      </span>
-                                    </div>
-
-                                    <div className="timer-controls" style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
-                                      {!timerRunning ? (
-                                        <button className="timer-btn btn-play-timer" onClick={(e) => { e.stopPropagation(); startTimer(); }} style={{ padding: '6px 10px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                          <Play size={10} fill="currentColor" /> Iniciar
-                                        </button>
-                                      ) : (
-                                        <button className="timer-btn btn-pause-timer" onClick={(e) => { e.stopPropagation(); pauseTimer(); }} style={{ padding: '6px 10px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                          <Pause size={10} fill="currentColor" /> Pausar
-                                        </button>
-                                      )}
-                                      <button className="timer-btn btn-reset-timer" onClick={(e) => { e.stopPropagation(); resetTimer(); }} style={{ padding: '6px 10px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                        <Square size={8} fill="currentColor" /> Reset
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-
-                              {activeChallenge.category === 'palabras' && (
-                                <button
-                                  className="btn-variar"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    const palabrasCards = CHALLENGES_DECK.filter(c => c.category === 'palabras' && c.id !== activeChallenge.id);
-                                    if (palabrasCards.length > 0) {
-                                      const next = palabrasCards[Math.floor(Math.random() * palabrasCards.length)];
-                                      changeChallengeWithFlip(next);
-                                    }
-                                  }}
-                                  style={{
-                                    position: 'absolute',
-                                    bottom: '20px',
-                                    left: '50%',
-                                    transform: 'translateX(-50%)',
-                                    zIndex: 10,
-                                    padding: '8px 16px',
-                                    fontSize: '0.8rem',
-                                    background: 'rgba(15, 16, 21, 0.85)',
-                                    backdropFilter: 'blur(8px)',
-                                    border: '1px solid var(--neon-teal)',
-                                    borderRadius: '20px',
-                                    color: 'var(--neon-teal)',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '6px',
-                                    fontWeight: 'bold',
-                                    transition: 'all 0.2s'
-                                  }}
-                                >
-                                  <RefreshCw size={12} />
-                                  <span>Más palabras</span>
-                                </button>
-                              )}
                             </div>
                           ) : (
                             <>
@@ -858,21 +787,6 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, onGameSaved, gameSetti
                                         <span key={idx} className="word-badge-8 pink-glow-text">{w}</span>
                                       ))}
                                     </div>
-                                    <div className="words-variar-divider">
-                                      <button
-                                        className="btn-variar"
-                                        onClick={() => {
-                                          const palabrasCards = CHALLENGES_DECK.filter(c => c.category === 'palabras' && c.id !== activeChallenge.id);
-                                          if (palabrasCards.length > 0) {
-                                            const next = palabrasCards[Math.floor(Math.random() * palabrasCards.length)];
-                                            changeChallengeWithFlip(next);
-                                          }
-                                        }}
-                                      >
-                                        <RefreshCw size={14} />
-                                        <span>Más palabras</span>
-                                      </button>
-                                    </div>
                                   </div>
                                 )}
 
@@ -884,29 +798,6 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, onGameSaved, gameSetti
                                     <div className="beatbox-keyword-box">
                                       <span className="keyword-label">TEMÁTICA:</span>
                                       <h4 className="keyword-highlight">{activeChallenge.highlightText}</h4>
-                                    </div>
-
-                                    <div className="timer-widget glass-panel">
-                                      <div className={`timer-display ${timerSeconds <= 10 && timerRunning ? 'critical-time' : ''}`}>
-                                        <span className="timer-digits">
-                                          {Math.floor(timerSeconds / 60)}:{(timerSeconds % 60).toString().padStart(2, '0')}
-                                        </span>
-                                      </div>
-
-                                      <div className="timer-controls">
-                                        {!timerRunning ? (
-                                          <button className="timer-btn btn-play-timer" onClick={startTimer}>
-                                            <Play size={14} fill="currentColor" /> Iniciar
-                                          </button>
-                                        ) : (
-                                          <button className="timer-btn btn-pause-timer" onClick={pauseTimer}>
-                                            <Pause size={14} fill="currentColor" /> Pausar
-                                          </button>
-                                        )}
-                                        <button className="timer-btn btn-reset-timer" onClick={resetTimer}>
-                                          <Square size={12} fill="currentColor" /> Reset
-                                        </button>
-                                      </div>
                                     </div>
                                   </div>
                                 )}
@@ -935,11 +826,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, onGameSaved, gameSetti
                             </>
                           )}
 
-                          {gameSettings?.subMode !== 'custom' && (
-                            <button className="btn-card-redraw" onClick={(e) => { e.stopPropagation(); drawChallenge(400); }}>
-                              <RefreshCw size={12} /> Cambiar Desafío
-                            </button>
-                          )}
+
                         </div>
                       </div>
                     </div>
@@ -1100,11 +987,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, onGameSaved, gameSetti
                             </>
                           )}
 
-                          {gameSettings?.subMode !== 'custom' && (
-                            <button className="btn-card-redraw" onClick={(e) => { e.stopPropagation(); drawBeat(400); }}>
-                              <RefreshCw size={12} /> Cambiar Beat
-                            </button>
-                          )}
+
                         </div>
                       </div>
                     </div>
@@ -1122,6 +1005,89 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, onGameSaved, gameSetti
                 <ChevronRight size={28} />
               </button>
             </div>
+
+            {/* PANEL DE CONTROL DE CARTAS */}
+            {((activeCardType === 'challenge' && activeChallenge) || (activeCardType === 'beat' && activeBeat)) && (
+              <div className="card-controls-panel glass-panel">
+                {activeCardType === 'challenge' && activeChallenge && (
+                  <div className="card-controls-group fade-in">
+                    {/* Botón Más Palabras si aplica */}
+                    {activeChallenge.category === 'palabras' && (
+                      <button
+                        className="btn-variar-new"
+                        onClick={() => {
+                          const palabrasCards = CHALLENGES_DECK.filter(c => c.category === 'palabras' && c.id !== activeChallenge.id);
+                          if (palabrasCards.length > 0) {
+                            const next = palabrasCards[Math.floor(Math.random() * palabrasCards.length)];
+                            changeChallengeWithFlip(next);
+                          }
+                        }}
+                      >
+                        <RefreshCw size={14} />
+                        <span>Más palabras</span>
+                      </button>
+                    )}
+
+                    {/* Temporizador si es beatbox */}
+                    {activeChallenge.category === 'beatbox' && (
+                      <div className="timer-control-widget">
+                        <div className={`timer-display-new ${timerSeconds <= 10 && timerRunning ? 'critical-time' : ''}`}>
+                          <span className="timer-digits-new">
+                            {Math.floor(timerSeconds / 60)}:{(timerSeconds % 60).toString().padStart(2, '0')}
+                          </span>
+                        </div>
+                        <div className="timer-controls-new">
+                          {!timerRunning ? (
+                            <button className="timer-btn-new btn-play-timer" onClick={startTimer}>
+                              <Play size={12} fill="currentColor" /> Iniciar
+                            </button>
+                          ) : (
+                            <button className="timer-btn-new btn-pause-timer" onClick={pauseTimer}>
+                              <Pause size={12} fill="currentColor" /> Pausar
+                            </button>
+                          )}
+                          <button className="timer-btn-new btn-reset-timer" onClick={resetTimer}>
+                            <Square size={10} fill="currentColor" /> Reset
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Cambiar Desafío */}
+                    {gameSettings?.subMode !== 'custom' && (
+                      <button className="btn-card-redraw-new" onClick={() => drawChallenge(400)}>
+                        <RefreshCw size={12} /> Cambiar Desafío
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {activeCardType === 'beat' && activeBeat && (
+                  <div className="card-controls-group fade-in">
+                    <div className="beat-controls-new">
+                      <button className="btn-spotify-link-new" onClick={() => openSpotify(activeBeat)}>
+                        <Play size={12} fill="currentColor" />
+                        <span>ABRIR EN SPOTIFY</span>
+                      </button>
+                      <button 
+                        className={`btn-metronome-new ${isMetronomeOn ? 'active' : ''}`}
+                        onClick={() => setIsMetronomeOn(!isMetronomeOn)}
+                      >
+                        <Volume2 size={12} />
+                        <span>Metrónomo ({activeBeat.bpm} BPM)</span>
+                      </button>
+                    </div>
+
+                    {/* Cambiar Beat */}
+                    {gameSettings?.subMode !== 'custom' && (
+                      <button className="btn-card-redraw-new" onClick={() => drawBeat(400)}>
+                        <RefreshCw size={12} /> Cambiar Beat
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Acciones de Footer */}
             <div className="game-footer-actions">
