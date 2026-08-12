@@ -1406,3 +1406,40 @@
   color: var(--text-primary);
   border-color: var(--text-secondary);
 }
+
+/* RESPONSIVE MEDIA QUERIES */
+@media (max-width: 768px) {
+  .setup-outer-container {
+    overflow-y: auto;
+    justify-content: flex-start;
+    padding: 60px 12px 24px;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .setup-individual-screen {
+    height: auto;
+    gap: 16px;
+    padding-bottom: 24px;
+  }
+
+  .individual-custom-content {
+    flex-direction: column;
+    overflow: visible;
+    gap: 20px;
+    height: auto;
+  }
+
+  .selection-column {
+    min-height: 250px;
+    max-height: 350px;
+    height: 300px;
+  }
+
+  .scrollable-list {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 240px;
+  }
+}
+

@@ -799,6 +799,29 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, onGameSaved, gameSetti
                                       <span className="keyword-label">TEMÁTICA:</span>
                                       <h4 className="keyword-highlight">{activeChallenge.highlightText}</h4>
                                     </div>
+
+                                    {/* Timer integrado en la carta */}
+                                    <div className="card-timer-widget">
+                                      <div className={`card-timer-display ${timerSeconds <= 10 && timerRunning ? 'critical-time' : ''}`}>
+                                        <span className="card-timer-digits">
+                                          {Math.floor(timerSeconds / 60)}:{(timerSeconds % 60).toString().padStart(2, '0')}
+                                        </span>
+                                      </div>
+                                      <div className="card-timer-controls">
+                                        {!timerRunning ? (
+                                          <button className="card-timer-btn btn-play" onClick={(e) => { e.stopPropagation(); startTimer(); }}>
+                                            <Play size={12} fill="currentColor" /> Iniciar
+                                          </button>
+                                        ) : (
+                                          <button className="card-timer-btn btn-pause" onClick={(e) => { e.stopPropagation(); pauseTimer(); }}>
+                                            <Pause size={12} fill="currentColor" /> Pausar
+                                          </button>
+                                        )}
+                                        <button className="card-timer-btn btn-reset" onClick={(e) => { e.stopPropagation(); resetTimer(); }}>
+                                          <Square size={10} fill="currentColor" /> Reset
+                                        </button>
+                                      </div>
+                                    </div>
                                   </div>
                                 )}
 
@@ -1028,30 +1051,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, onGameSaved, gameSetti
                       </button>
                     )}
 
-                    {/* Temporizador si es beatbox */}
-                    {activeChallenge.category === 'beatbox' && (
-                      <div className="timer-control-widget">
-                        <div className={`timer-display-new ${timerSeconds <= 10 && timerRunning ? 'critical-time' : ''}`}>
-                          <span className="timer-digits-new">
-                            {Math.floor(timerSeconds / 60)}:{(timerSeconds % 60).toString().padStart(2, '0')}
-                          </span>
-                        </div>
-                        <div className="timer-controls-new">
-                          {!timerRunning ? (
-                            <button className="timer-btn-new btn-play-timer" onClick={startTimer}>
-                              <Play size={12} fill="currentColor" /> Iniciar
-                            </button>
-                          ) : (
-                            <button className="timer-btn-new btn-pause-timer" onClick={pauseTimer}>
-                              <Pause size={12} fill="currentColor" /> Pausar
-                            </button>
-                          )}
-                          <button className="timer-btn-new btn-reset-timer" onClick={resetTimer}>
-                            <Square size={10} fill="currentColor" /> Reset
-                          </button>
-                        </div>
-                      </div>
-                    )}
+
 
                     {/* Cambiar Desafío */}
                     {gameSettings?.subMode !== 'custom' && (
