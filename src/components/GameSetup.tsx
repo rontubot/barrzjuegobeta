@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Users, User, Play, Pause, ArrowLeft, Plus, Minus, UserPlus, Check, RefreshCw, BookOpen, ArrowRight } from 'lucide-react';
+import { Users, User, Play, Pause, ArrowLeft, Plus, Minus, UserPlus, Check, RefreshCw, ArrowRight } from 'lucide-react';
 import { BEATS_DECK, CHALLENGES_DECK } from '../data/cards';
 import type { BeatCard, ChallengeCard } from '../data/cards';
 import './GameSetup.css';
@@ -102,10 +102,6 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
   const [startingPlayer, setStartingPlayer] = useState('');
   const [isSpinning, setIsSpinning] = useState(false);
   const [spinIndex, setSpinIndex] = useState(0);
-
-  // Tutorial interactivo
-  const [showTutorialSlides, setShowTutorialSlides] = useState(false);
-  const [tutorialSlide, setTutorialSlide] = useState(0);
 
   // Vinculación de Spotify
   const [isSpotifyLinked, setIsSpotifyLinked] = useState(() => localStorage.getItem('barrz_spotify_linked') === 'true');
@@ -229,19 +225,7 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
     setIsSpinning(true);
   };
 
-  // Tutorial Slides
-  const tutorialSteps = [
-    {
-      title: "REGLAS DEL JUEGO",
-      desc: "Repasá las reglas oficiales de BARRZ para competir como un profesional.",
-      image: "/CARTAS DESAFIO/carta REGLAS JUEGO.png"
-    },
-    {
-      title: "CONECTÁ CON BARRZ",
-      desc: "Escaneá el código QR para seguirnos en Instagram y enterarte de todas las novedades.",
-      image: "/CARTAS DESAFIO/carta QR INSTAGRAM.png"
-    }
-  ];
+
 
   return (
     <div className="setup-outer-container">
@@ -276,73 +260,26 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
         </div>
       )}
 
-      {/* ── TUTORIAL ASK ───────────────────────────────────────────────── */}
+      {/* ── TUTORIAL / REGLAS DIRECTO ──────────────────────────────────── */}
       {step === 'tutorial_ask' && (
-        <div className="setup-card glass-panel glow-teal text-center fade-in">
-          {!showTutorialSlides ? (
-            <div className="tutorial-ask-content">
-              <div className="icon-wrapper">
-                <BookOpen size={48} className="teal-text" />
-              </div>
-              <h2 className="font-graffiti text-glow-teal">¿CÓMO ANDAMOS DE REGLAS?</h2>
-              <p className="step-description">
-                ¿Querés ver un breve tutorial interactivo para entender cómo jugar, las cartas y el reproductor de Spotify?
-              </p>
-
-              <div className="tutorial-actions-row">
-                <button className="btn-neon-teal" onClick={() => setShowTutorialSlides(true)}>
-                  SÍ, VER TUTORIAL
-                </button>
-                <button className="btn-neon-pink" onClick={() => onNext('link_spotify')}>
-                  NO, SALTEAR
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="tutorial-slideshow fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 'auto', padding: '10px 0' }}>
-              <div className="tutorial-card-container" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '20px' }}>
-                {tutorialSlide > 0 ? (
-                  <button 
-                    className="btn-nav-arrow" 
-                    onClick={() => setTutorialSlide(prev => prev - 1)}
-                    style={{ background: 'none', border: 'none', color: 'var(--neon-teal)', fontSize: '3rem', cursor: 'pointer', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', textShadow: '0 0 10px var(--neon-teal)', outline: 'none' }}
-                  >
-                    ‹
-                  </button>
-                ) : (
-                  <div style={{ width: '40px' }}></div>
-                )}
-                
-                <img 
-                  src={tutorialSteps[tutorialSlide].image} 
-                  alt={tutorialSteps[tutorialSlide].title} 
-                  style={{ maxHeight: '420px', width: 'auto', borderRadius: '16px', boxShadow: '0 12px 36px rgba(0,0,0,0.6)', border: '2px solid rgba(255,255,255,0.1)' }} 
-                />
-
-                {tutorialSlide < tutorialSteps.length - 1 ? (
-                  <button 
-                    className="btn-nav-arrow" 
-                    onClick={() => setTutorialSlide(prev => prev + 1)}
-                    style={{ background: 'none', border: 'none', color: 'var(--neon-teal)', fontSize: '3rem', cursor: 'pointer', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', textShadow: '0 0 10px var(--neon-teal)', outline: 'none' }}
-                  >
-                    ›
-                  </button>
-                ) : (
-                  <button 
-                    className="btn-nav-arrow highlight-finish" 
-                    onClick={() => {
-                      setShowTutorialSlides(false);
-                      setTutorialSlide(0);
-                      onNext('link_spotify');
-                    }}
-                    style={{ background: 'none', border: 'none', color: 'var(--neon-pink)', fontSize: '3rem', cursor: 'pointer', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', textShadow: '0 0 10px var(--neon-pink)', outline: 'none' }}
-                  >
-                    ✓
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
+        <div className="tutorial-card-view fade-in">
+          <div className="tutorial-card-wrapper" onClick={() => onNext('link_spotify')}>
+            <img 
+              src="/CARTAS DESAFIO/carta REGLAS JUEGO.png" 
+              alt="Reglas del Juego" 
+              className="tutorial-full-card" 
+            />
+            <button 
+              className="tutorial-continue-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                onNext('link_spotify');
+              }}
+            >
+              <span>CONTINUAR</span>
+              <Play size={16} fill="currentColor" />
+            </button>
+          </div>
         </div>
       )}
 
