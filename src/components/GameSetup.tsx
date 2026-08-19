@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Users, User, Play, Pause, ArrowLeft, Plus, Minus, UserPlus, Check, RefreshCw, Volume2, Sparkles, BookOpen, Compass, Radio, ArrowRight } from 'lucide-react';
+import { Users, User, Play, Pause, ArrowLeft, Plus, Minus, UserPlus, Check, RefreshCw, BookOpen, ArrowRight } from 'lucide-react';
 import { BEATS_DECK, CHALLENGES_DECK } from '../data/cards';
 import type { BeatCard, ChallengeCard } from '../data/cards';
 import './GameSetup.css';
@@ -232,29 +232,14 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
   // Tutorial Slides
   const tutorialSteps = [
     {
-      title: "Navegación e Interacción",
-      desc: "Bienvenido al laboratorio de freestyle. Navegá por los diferentes mazos de cartas, desafíos dinámicos y bases instrumentales con cronómetro de rimas incorporado y soporte en tiempo real.",
-      icon: <Compass size={40} className="teal-text" />
+      title: "REGLAS DEL JUEGO",
+      desc: "Repasá las reglas oficiales de BARRZ para competir como un profesional.",
+      image: "/CARTAS DESAFIO/carta REGLAS JUEGO.png"
     },
     {
-      title: "Mazos y Cartas",
-      desc: "El juego tiene un mazo verde de Beats (ritmos de rap) y un mazo rosa de Desafíos. ¡En cada turno deberás sacar una carta de cada mazo!",
-      icon: <Sparkles size={40} className="teal-text" />
-    },
-    {
-      title: "Bases con Spotify",
-      desc: "Haz clic sobre la carta de Beat para abrir directamente el reproductor de Spotify en segundo plano. La música sonará sin interrumpir la app.",
-      icon: <Volume2 size={40} className="pink-text" />
-    },
-    {
-      title: "Puntuación en Equipo",
-      desc: "Improvisa de acuerdo al desafío. Al final del turno, tus compañeros te puntuarán de 1 a 5 estrellas según tu fluidez, métrica y entrega. ¡Gana el que sume más puntos!",
-      icon: <Users size={40} className="teal-text" />
-    },
-    {
-      title: "Estadísticas y Conexión",
-      desc: "Sincronizá tus bases de rap de forma fluida y accede a los informes completos y registros estadísticos de cada uno de tus combates.",
-      icon: <Radio size={40} className="pink-text" />
+      title: "CONECTÁ CON BARRZ",
+      desc: "Escaneá el código QR para seguirnos en Instagram y enterarte de todas las novedades.",
+      image: "/CARTAS DESAFIO/carta QR INSTAGRAM.png"
     }
   ];
 
@@ -315,8 +300,12 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
             </div>
           ) : (
             <div className="tutorial-slideshow fade-in">
-              <div className="slide-icon-row">
-                {tutorialSteps[tutorialSlide].icon}
+              <div className="slide-image-row" style={{ display: 'flex', justifyContent: 'center', marginBottom: '14px' }}>
+                <img 
+                  src={tutorialSteps[tutorialSlide].image} 
+                  alt={tutorialSteps[tutorialSlide].title} 
+                  style={{ maxHeight: '280px', borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }} 
+                />
               </div>
               <h3 className="slide-title font-graffiti">{tutorialSteps[tutorialSlide].title}</h3>
               <p className="slide-description">{tutorialSteps[tutorialSlide].desc}</p>
@@ -336,7 +325,18 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
                   <button className="btn-nav-slide" onClick={() => setTutorialSlide(prev => prev - 1)}>
                     Anterior
                   </button>
-                ) : <span className="placeholder-slide"></span>}
+                ) : (
+                  <button 
+                    className="btn-nav-slide" 
+                    onClick={() => {
+                      setShowTutorialSlides(false);
+                      setTutorialSlide(0);
+                      onNext('mode_selection');
+                    }}
+                  >
+                    Saltar
+                  </button>
+                )}
 
                 {tutorialSlide < tutorialSteps.length - 1 ? (
                   <button className="btn-nav-slide highlight" onClick={() => setTutorialSlide(prev => prev + 1)}>
@@ -348,7 +348,7 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
                     onClick={() => {
                       setShowTutorialSlides(false);
                       setTutorialSlide(0);
-                      onNext('link_spotify');
+                      onNext('mode_selection');
                     }}
                   >
                     Entendido, Jugar
