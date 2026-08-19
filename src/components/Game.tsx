@@ -236,7 +236,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, onGameSaved, gameSetti
   useEffect(() => {
     let interval: any = null;
     if (spotifyPlaying && subState === 'playing') {
-      const isFreestyleLibre = activeChallenge?.id === 'challenge-tematicas-libre';
+      const isFreestyleLibre = activeChallenge?.category === 'freestyle' || activeChallenge?.id === 'challenge-tematicas-libre' || activeChallenge?.id === 'challenge-freestyle-libre';
       const limit = isFreestyleLibre ? 180 : 60;
       interval = setInterval(() => {
         setSpotifyProgress(prev => {
@@ -314,7 +314,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, onGameSaved, gameSetti
     setTimeout(() => {
       // Si está activa la opción de freestyle libre aleatorio en multijugador, hay un 15% de probabilidad de forzarlo
       if (mode === 'multiplayer' && gameSettings?.allowRandomFreestyle && Math.random() < 0.15) {
-        const libreCard = CHALLENGES_DECK.find(c => c.id === 'challenge-tematicas-libre');
+        const libreCard = CHALLENGES_DECK.find(c => c.category === 'freestyle' || c.id === 'challenge-freestyle-libre' || c.id === 'challenge-tematicas-libre');
         if (libreCard) {
           setActiveChallenge(libreCard);
           setChallengeFlipped(true);
@@ -926,7 +926,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, onGameSaved, gameSetti
                                     {Math.floor(spotifyProgress / 60)}:{(spotifyProgress % 60).toString().padStart(2, '0')}
                                   </span>
                                   {(() => {
-                                    const isFreestyleLibre = activeChallenge?.id === 'challenge-tematicas-libre';
+                                    const isFreestyleLibre = activeChallenge?.category === 'freestyle' || activeChallenge?.id === 'challenge-tematicas-libre' || activeChallenge?.id === 'challenge-freestyle-libre';
                                     const limit = isFreestyleLibre ? 180 : 60;
                                     const limitStr = isFreestyleLibre ? '3:00' : '1:00';
                                     return (

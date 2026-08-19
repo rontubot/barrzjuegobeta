@@ -40,7 +40,8 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
     'tematicas',
     'terminaciones',
     'beatbox',
-    'versus'
+    'versus',
+    'freestyle'
   ]);
   const [allowRandomFreestyle, setAllowRandomFreestyle] = useState(false);
 
@@ -145,7 +146,8 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
     { id: 'tematicas', label: 'Temáticas', desc: 'Desafíos de temáticas' },
     { id: 'terminaciones', label: 'Terminaciones', desc: 'Desafíos de terminaciones' },
     { id: 'beatbox', label: 'Beatbox', desc: 'Desafíos de beatbox con cronómetro' },
-    { id: 'versus', label: 'Versus', desc: 'Desafíos versus' }
+    { id: 'versus', label: 'Versus', desc: 'Desafíos versus' },
+    { id: 'freestyle', label: 'Freestyle', desc: 'Improvisación libre sobre el beat' }
   ];
 
   // Manejo de nombres de jugadores

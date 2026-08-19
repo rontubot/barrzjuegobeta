@@ -9,7 +9,7 @@ export interface BeatCard {
 
 export interface ChallengeCard {
   id: string;
-  category: 'palabras' | 'tematicas' | 'terminaciones' | 'beatbox' | 'versus';
+  category: 'palabras' | 'tematicas' | 'terminaciones' | 'beatbox' | 'versus' | 'freestyle';
   title: string;
   description: string;
   wordsTop?: string[];
@@ -298,10 +298,10 @@ export const CHALLENGES_DECK: ChallengeCard[] = [
     imageUrl: '/CARTAS DESAFIO/tematica millon de dolares.png'
   },
   {
-    id: 'challenge-tematicas-libre',
-    category: 'tematicas',
+    id: 'challenge-freestyle-libre',
+    category: 'freestyle',
     title: 'Freestyle Libre',
-    description: 'Improvisación libre',
+    description: 'Improvisación libre sobre el beat',
     imageUrl: '/CARTAS DESAFIO/freestyle libre.png'
   },
   {
