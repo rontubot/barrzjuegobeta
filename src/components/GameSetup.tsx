@@ -299,59 +299,45 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
               </div>
             </div>
           ) : (
-            <div className="tutorial-slideshow fade-in">
-              <div className="slide-image-row" style={{ display: 'flex', justifyContent: 'center', marginBottom: '14px' }}>
+            <div className="tutorial-slideshow fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 'auto', padding: '10px 0' }}>
+              <div className="tutorial-card-container" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '20px' }}>
+                {tutorialSlide > 0 ? (
+                  <button 
+                    className="btn-nav-arrow" 
+                    onClick={() => setTutorialSlide(prev => prev - 1)}
+                    style={{ background: 'none', border: 'none', color: 'var(--neon-teal)', fontSize: '3rem', cursor: 'pointer', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', textShadow: '0 0 10px var(--neon-teal)', outline: 'none' }}
+                  >
+                    ‹
+                  </button>
+                ) : (
+                  <div style={{ width: '40px' }}></div>
+                )}
+                
                 <img 
                   src={tutorialSteps[tutorialSlide].image} 
                   alt={tutorialSteps[tutorialSlide].title} 
-                  style={{ maxHeight: '280px', borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }} 
+                  style={{ maxHeight: '420px', width: 'auto', borderRadius: '16px', boxShadow: '0 12px 36px rgba(0,0,0,0.6)', border: '2px solid rgba(255,255,255,0.1)' }} 
                 />
-              </div>
-              <h3 className="slide-title font-graffiti">{tutorialSteps[tutorialSlide].title}</h3>
-              <p className="slide-description">{tutorialSteps[tutorialSlide].desc}</p>
-
-              <div className="slide-indicators">
-                {tutorialSteps.map((_, idx) => (
-                  <span 
-                    key={idx} 
-                    className={`indicator-dot ${tutorialSlide === idx ? 'active' : ''}`}
-                    onClick={() => setTutorialSlide(idx)}
-                  ></span>
-                ))}
-              </div>
-
-              <div className="slide-navigation">
-                {tutorialSlide > 0 ? (
-                  <button className="btn-nav-slide" onClick={() => setTutorialSlide(prev => prev - 1)}>
-                    Anterior
-                  </button>
-                ) : (
-                  <button 
-                    className="btn-nav-slide" 
-                    onClick={() => {
-                      setShowTutorialSlides(false);
-                      setTutorialSlide(0);
-                      onNext('mode_selection');
-                    }}
-                  >
-                    Saltar
-                  </button>
-                )}
 
                 {tutorialSlide < tutorialSteps.length - 1 ? (
-                  <button className="btn-nav-slide highlight" onClick={() => setTutorialSlide(prev => prev + 1)}>
-                    Siguiente
+                  <button 
+                    className="btn-nav-arrow" 
+                    onClick={() => setTutorialSlide(prev => prev + 1)}
+                    style={{ background: 'none', border: 'none', color: 'var(--neon-teal)', fontSize: '3rem', cursor: 'pointer', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', textShadow: '0 0 10px var(--neon-teal)', outline: 'none' }}
+                  >
+                    ›
                   </button>
                 ) : (
                   <button 
-                    className="btn-nav-slide highlight" 
+                    className="btn-nav-arrow highlight-finish" 
                     onClick={() => {
                       setShowTutorialSlides(false);
                       setTutorialSlide(0);
-                      onNext('mode_selection');
+                      onNext('link_spotify');
                     }}
+                    style={{ background: 'none', border: 'none', color: 'var(--neon-pink)', fontSize: '3rem', cursor: 'pointer', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', textShadow: '0 0 10px var(--neon-pink)', outline: 'none' }}
                   >
-                    Entendido, Jugar
+                    ✓
                   </button>
                 )}
               </div>
@@ -597,7 +583,7 @@ export const GameSetup: React.FC<GameSetupProps> = ({ step, userSession, onNext,
                   </div>
 
                   <div className="themes-mosaic-grid">
-                    {CHALLENGES_DECK.filter(c => c.category === 'tematicas').map((card) => (
+                    {CHALLENGES_DECK.filter(c => c.category === 'tematicas' && c.id !== 'challenge-tematicas-libre').map((card) => (
                       <div 
                         key={card.id} 
                         className="theme-mosaic-card glow-pink" 
